@@ -1,0 +1,32 @@
+services:
+  stagepass_db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: "stagepass_db"
+      POSTGRES_USER: "stagepass_server"
+      POSTGRES_PASSWORD: "60009172"
+    ports:
+      - "5432:5432"
+    volumes:
+      - stagepass_db_data:/var/lib/postgresql/data
+
+  # stagepass_server:
+  #   build: .
+  #   container_name: stagepass_server
+  #   restart: always
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - stagepass_network
+  #   depends_on:
+  #     - stagepass_db
+  #   volumes:
+  #     - .:/usr/app
+
+networks:
+  stagepass_network:
+    driver: bridge
+
+volumes:
+  stagepass_db_data:
