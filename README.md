@@ -15,4 +15,4 @@ It is built with **Next.js, NestJS, PostgreSQL, Drizzle, Redis, and Docker**, fo
 ---
 
 StagePass simulates a **production-ready ticketing system** inspired by platforms like _Eventbrite_ and _Sympla_,  
-serving as a **portfolio project** to showcase backen and frontend skills.
+serving as a **portfolio project** to showcase Back-End and Front-End skills.
