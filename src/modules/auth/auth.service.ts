@@ -33,6 +33,17 @@ export class AuthService {
       ...signUpLocalDto,
       password: hashedPassword,
     });
+
+    const createdUser = await this.usersService.findByEmail(
+      signUpLocalDto.email,
+    );
+
+    const token = await this.signInLocal(createdUser.id);
+
+    return {
+      id: createdUser.id,
+      token,
+    };
   }
 
   async validateUser(email: string, password: string) {

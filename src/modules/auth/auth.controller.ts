@@ -25,7 +25,7 @@ export class AuthController {
   @Post('/local/sign-up')
   @UsePipes(new ZodValidationPipe(signUpLocalDtoSchema))
   async signUpLocal(@Body() signUpLocalDto: SignUpLocalDto) {
-    await this.authService.signUpLocal(signUpLocalDto);
+    return await this.authService.signUpLocal(signUpLocalDto);
   }
 
   @HttpCode(HttpStatus.OK)
