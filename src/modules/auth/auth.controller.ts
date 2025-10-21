@@ -1,19 +1,40 @@
-import { Body, Controller, Post, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Request,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common';
 
-import { UsersService } from '../users/users.service';
 import { ZodValidationPipe } from '../shared/pipes';
-import { SignUpLocalDto, signUpLocalDtoSchema } from './dtos';
+import {
+  signInLocalDtoSchema,
+  SignUpLocalDto,
+  signUpLocalDtoSchema,
+} from './dtos';
+import { AuthService } from './auth.service';
+import { LocalAuthGuard } from './guards';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('/local/sign-up')
   @UsePipes(new ZodValidationPipe(signUpLocalDtoSchema))
-  async signUpLocal(@Body() signUpLocalDto: SignUpLocalDto): Promise<void> {
-    console.log('signUpLocalDto::', signUpLocalDto);
+  async signUpLocal(@Body() signUpLocalDto: SignUpLocalDto) {
+    await this.authService.signUpLocal(signUpLocalDto);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(LocalAuthGuard)
   @Post('/local/sign-in')
-  async signInLocal(): Promise<void> {}
+  @UsePipes(new ZodValidationPipe(signInLocalDtoSchema))
+  async signInLocal(@Request() req): Promise<void> {
+    console.log('user::', req.user);
+
+    return req.user;
+  }
 }

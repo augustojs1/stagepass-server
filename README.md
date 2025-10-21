@@ -6,7 +6,7 @@ It is built with **Next.js, NestJS, PostgreSQL, Drizzle, Redis, and Docker**, fo
 
 ### 🔑 Key Features
 
-- 🔐 **User Authentication** — email/password, Google OAuth, and One-Time Password (OTP).
+- 🔐 **User Authentication** — email/password with refresh token auth flow, Google OAuth, and One-Time Password (OTP).
 - 📅 **Event Management** — create, list, search, and filter events with geolocation support.
 - 🎫 **Ticket Reservations** — with expiration timers and concurrency locks to avoid overselling.
 - 💳 **Payments** — secure checkout flow with Stripe sandbox integration.
