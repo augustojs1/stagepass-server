@@ -3,16 +3,19 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from '../users/users.service';
 import { SignUpLocalDto } from './dtos';
 import { HashProvider } from './providers';
+import { JwtPayload } from './models';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly hashProvider: HashProvider,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUpLocal(signUpLocalDto: SignUpLocalDto) {
@@ -32,7 +35,7 @@ export class AuthService {
     });
   }
 
-  async signInLocal(email: string, password: string) {
+  async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
@@ -51,5 +54,13 @@ export class AuthService {
     return {
       id: user.id,
     };
+  }
+
+  async signInLocal(user_id: string) {
+    const payload: JwtPayload = {
+      sub: user_id,
+    };
+
+    return this.jwtService.sign(payload);
   }
 }

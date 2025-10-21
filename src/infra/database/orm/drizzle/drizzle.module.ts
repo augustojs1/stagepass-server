@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { DrizzlePostgresModule } from '@knaadh/nestjs-drizzle-postgres';
 
 import * as schema from './schema';
+import { configuration } from '@/infra/config/configuration';
 
 dotenv.config({
   path: `${process.cwd()}/src/infra/config/env/${process.env.NODE_ENV}.env`,
@@ -15,13 +16,13 @@ export const DATABASE_TAG = 'STAGEPASS_DB';
     DrizzlePostgresModule.register({
       tag: DATABASE_TAG,
       postgres: {
-        url: 'postgres://postgres:@localhost:5432/stagepass_db',
+        url: configuration().database.url,
         config: {
-          host: 'localhost',
-          port: 5432,
-          user: 'stagepass_server',
-          password: '60009172',
-          database: 'stagepass_db',
+          host: configuration().database.host,
+          port: Number(configuration().database.port),
+          user: configuration().database.user,
+          password: configuration().database.password,
+          database: configuration().database.database,
         },
       },
       config: { schema: { ...schema } },

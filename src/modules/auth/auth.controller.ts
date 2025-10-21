@@ -32,9 +32,16 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('/local/sign-in')
   @UsePipes(new ZodValidationPipe(signInLocalDtoSchema))
-  async signInLocal(@Request() req): Promise<void> {
-    console.log('user::', req.user);
+  async signInLocal(@Request() req): Promise<any> {
+    console.log('req user::', req.user);
 
-    return req.user;
+    const token = await this.authService.signInLocal(req.user.id);
+
+    console.log('token::', token);
+
+    return {
+      id: req.user.id,
+      token,
+    };
   }
 }

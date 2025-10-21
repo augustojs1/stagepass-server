@@ -24,6 +24,15 @@ export class UsersRepository {
     });
   }
 
+  async findById(user_id: string): Promise<UserEntity | null> {
+    const user = await this.drizzle
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, user_id));
+
+    return user[0];
+  }
+
   async findByEmail(email: string): Promise<UserEntity | null> {
     const user = await this.drizzle
       .select()

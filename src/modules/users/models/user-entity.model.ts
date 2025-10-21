@@ -1,4 +1,4 @@
-export class UserEntity {
+export type UserEntity = {
   id: string;
   first_name: string;
   last_name: string;
@@ -8,4 +8,4 @@ export class UserEntity {
   is_admin: boolean;
   updated_at: string | Date;
   created_at: string | Date;
-}
+};
