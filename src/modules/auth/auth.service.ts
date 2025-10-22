@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from '../users/users.service';
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly hashProvider: HashProvider,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async signUpLocal(signUpLocalDto: SignUpLocalDto) {
@@ -72,6 +74,30 @@ export class AuthService {
       sub: user_id,
     };
 
-    return this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload);
+
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get<any>('jwt.refresh_expiresIn'),
+      secret: this.configService.get<any>('jwt.refresh_secret'),
+    });
+
+    return {
+      id: user_id,
+      access_token: token,
+      refresh_token: refreshToken,
+    };
+  }
+
+  async refreshToken(user_id: string) {
+    const payload: JwtPayload = {
+      sub: user_id,
+    };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+      id: user_id,
+      access_token: token,
+    };
   }
 }

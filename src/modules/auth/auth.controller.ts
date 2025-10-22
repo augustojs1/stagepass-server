@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Request,
   UseGuards,
   UsePipes,
@@ -17,6 +18,7 @@ import {
 } from './dtos';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards';
+import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -33,15 +35,12 @@ export class AuthController {
   @Post('/local/sign-in')
   @UsePipes(new ZodValidationPipe(signInLocalDtoSchema))
   async signInLocal(@Request() req): Promise<any> {
-    console.log('req user::', req.user);
+    return await this.authService.signInLocal(req.user.id);
+  }
 
-    const token = await this.authService.signInLocal(req.user.id);
-
-    console.log('token::', token);
-
-    return {
-      id: req.user.id,
-      token,
-    };
+  @UseGuards(RefreshAuthGuard)
+  @Post('/local/refresh')
+  async refreshToken(@Req() req) {
+    return this.authService.refreshToken(req.user.id);
   }
 }

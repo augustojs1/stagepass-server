@@ -4,11 +4,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { configuration } from '@/infra/config/configuration';
 import { JwtPayload } from '../models';
 
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class RefreshJwtStrategy extends PassportStrategy(
+  Strategy,
+  'refresh-jwt',
+) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configuration().jwt.secret,
+      secretOrKey: configuration().jwt.refresh_secret,
       ignoreExpiration: false,
     });
   }
