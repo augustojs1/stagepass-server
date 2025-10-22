@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { UsersRepository } from './users.repository';
 import { SignUpLocalDto } from '../auth/dtos';
@@ -13,10 +13,22 @@ export class UsersService {
   }
 
   async findById(user_id: string): Promise<UserEntity> {
-    return await this.usersRepository.findById(user_id);
+    const user = await this.usersRepository.findById(user_id);
+
+    if (!user) {
+      throw new NotFoundException('User with this id does not exists!');
+    }
+
+    return user;
   }
 
   async findByEmail(email: string): Promise<UserEntity> {
-    return this.usersRepository.findByEmail(email);
+    return await this.usersRepository.findByEmail(email);
+  }
+
+  async updateById(userId: string, userData: Partial<UserEntity>) {
+    await this.findById(userId);
+
+    await this.usersRepository.updateById(userId, userData);
   }
 }

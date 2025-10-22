@@ -17,6 +17,7 @@ export const users = pgTable('users', {
   email: varchar({ length: 50 }).notNull(),
   password: varchar({ length: 255 }).notNull(),
   is_admin: boolean().$default(() => false),
+  refresh_token: varchar({ length: 255 }),
   updated_at: timestamp().defaultNow(),
   created_at: timestamp().defaultNow(),
 });

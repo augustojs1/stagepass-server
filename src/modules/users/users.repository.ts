@@ -41,4 +41,11 @@ export class UsersRepository {
 
     return user[0];
   }
+
+  async updateById(user_id: string, userData: Partial<UserEntity>) {
+    await this.drizzle
+      .update(schema.users)
+      .set(userData as any)
+      .where(eq(schema.users.id, user_id));
+  }
 }

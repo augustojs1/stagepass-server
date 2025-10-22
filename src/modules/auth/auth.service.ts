@@ -40,12 +40,27 @@ export class AuthService {
       signUpLocalDto.email,
     );
 
-    const token = await this.signInLocal(createdUser.id);
+    return createdUser;
+  }
+
+  async signInLocal(userId: string) {
+    const { access_token, refresh_token } = await this.generateTokens(userId);
+
+    const hashedRefreshToken = await this.hashProvider.hashData(refresh_token);
+
+    await this.usersService.updateById(userId, {
+      refresh_token: hashedRefreshToken,
+    });
 
     return {
-      id: createdUser.id,
-      token,
+      id: userId,
+      access_token,
+      refresh_token,
     };
+  }
+
+  async signOutLocal(userId: string) {
+    await this.usersService.updateById(userId, { refresh_token: null });
   }
 
   async validateUser(email: string, password: string) {
@@ -69,35 +84,59 @@ export class AuthService {
     };
   }
 
-  async signInLocal(user_id: string) {
-    const payload: JwtPayload = {
-      sub: user_id,
-    };
+  async refreshToken(userId: string) {
+    const { access_token, refresh_token } = await this.generateTokens(userId);
 
-    const token = this.jwtService.sign(payload);
+    const hashedRefreshToken = await this.hashProvider.hashData(refresh_token);
 
-    const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<any>('jwt.refresh_expiresIn'),
-      secret: this.configService.get<any>('jwt.refresh_secret'),
+    await this.usersService.updateById(userId, {
+      refresh_token: hashedRefreshToken,
     });
 
     return {
-      id: user_id,
-      access_token: token,
-      refresh_token: refreshToken,
+      id: userId,
+      access_token,
+      refresh_token,
     };
   }
 
-  async refreshToken(user_id: string) {
+  async generateTokens(user_id: string) {
     const payload: JwtPayload = {
       sub: user_id,
     };
 
-    const token = this.jwtService.sign(payload);
+    const [access_token, refresh_token] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, {
+        expiresIn: this.configService.get<any>('jwt.refresh_expiresIn'),
+        secret: this.configService.get<any>('jwt.refresh_secret'),
+      }),
+    ]);
 
     return {
-      id: user_id,
-      access_token: token,
+      access_token,
+      refresh_token,
+    };
+  }
+
+  async validateRefreshToken(userId: string, refreshToken: string) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user.refresh_token) {
+      throw new UnauthorizedException('Invalid refresh token!');
+    }
+
+    const refreshTokenMatches = await this.hashProvider.compare(
+      refreshToken,
+      user.refresh_token,
+    );
+
+    if (!refreshTokenMatches) {
+      throw new UnauthorizedException('Invalid refresh token!');
+    }
+
+    return {
+      id: user.id,
     };
   }
 }
