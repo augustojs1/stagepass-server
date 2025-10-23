@@ -15,6 +15,7 @@ import {
   signInLocalDtoSchema,
   SignUpLocalDto,
   signUpLocalDtoSchema,
+  UserCreatedAndTokensDto,
 } from './dtos';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard, LocalAuthGuard } from './guards';
@@ -26,8 +27,13 @@ export class AuthController {
 
   @Post('/local/sign-up')
   @UsePipes(new ZodValidationPipe(signUpLocalDtoSchema))
-  async signUpLocal(@Body() signUpLocalDto: SignUpLocalDto) {
-    return await this.authService.signUpLocal(signUpLocalDto);
+  async signUpLocal(
+    @Body() signUpLocalDto: SignUpLocalDto,
+  ): Promise<UserCreatedAndTokensDto> {
+    const userCreatedAndTokens =
+      await this.authService.signUpLocal(signUpLocalDto);
+
+    return userCreatedAndTokens;
   }
 
   @HttpCode(HttpStatus.OK)
