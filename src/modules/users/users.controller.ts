@@ -16,7 +16,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('/me')
   async getMe(@Req() req): Promise<UserWithProfile> {
-    const user = await this.usersService.findWithProfileById(req.user.id);
+    const user = await this.usersService.findWithProfileById(req.user.sub);
 
     return await this.usersMapper.usersUsersProfileToUserTokens(user);
   }

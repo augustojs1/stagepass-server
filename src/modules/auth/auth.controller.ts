@@ -5,9 +5,11 @@ import {
   HttpStatus,
   Post,
   Req,
+  Res,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
+import { Response } from 'express';
 
 import { ZodValidationPipe } from '../shared/pipes';
 import {
@@ -20,6 +22,8 @@ import {
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
+import { configuration } from '@/infra/config/configuration';
+import { UserProfileDto } from '@/modules/users/dtos';
 
 @Controller('auth')
 export class AuthController {
@@ -39,8 +43,27 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/local/sign-in')
   @UsePipes(new ZodValidationPipe(signInLocalDtoSchema))
-  async signInLocal(@Body() body: SignInLocalDto): Promise<any> {
-    return await this.authService.signInLocal(body);
+  async signInLocal(
+    @Res({ passthrough: true }) res: Response,
+    @Body() body: SignInLocalDto,
+  ): Promise<UserProfileDto> {
+    const userLoggedIn = await this.authService.signInLocal(body);
+
+    res.cookie('x-access-token', userLoggedIn.tokens.access_token, {
+      // httpOnly: true,
+      // secure: true,
+      // sameSite: 'strict',
+      maxAge: Number(configuration().jwt.expiresInMs),
+    });
+
+    res.cookie('x-refresh-token', userLoggedIn.tokens.refresh_token, {
+      // httpOnly: true,
+      // secure: true,
+      // sameSite: 'strict',
+      maxAge: Number(configuration().jwt.refresh_expiresInMs),
+    });
+
+    return userLoggedIn.user;
   }
 
   @UseGuards(RefreshAuthGuard)

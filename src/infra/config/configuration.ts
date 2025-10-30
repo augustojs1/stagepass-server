@@ -13,7 +13,9 @@ export const configuration = () => ({
   jwt: {
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRE_IN,
+    expiresInMs: process.env.JWT_EXPIRE_IN_MS,
     refresh_secret: process.env.JWT_REFRESH_SECRET,
     refresh_expiresIn: process.env.JWT_REFRESH_EXPIRE_IN,
+    refresh_expiresInMs: process.env.JWT_REFRESH_EXPIRE_IN_MS,
   },
 });
