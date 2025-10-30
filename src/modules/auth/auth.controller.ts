@@ -17,7 +17,6 @@ import {
   signInLocalDtoSchema,
   SignUpLocalDto,
   signUpLocalDtoSchema,
-  UserCreatedAndTokensDto,
 } from './dtos';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards';
@@ -32,12 +31,27 @@ export class AuthController {
   @Post('/local/sign-up')
   @UsePipes(new ZodValidationPipe(signUpLocalDtoSchema))
   async signUpLocal(
+    @Res({ passthrough: true }) res: Response,
     @Body() signUpLocalDto: SignUpLocalDto,
-  ): Promise<UserCreatedAndTokensDto> {
+  ): Promise<UserProfileDto> {
     const userCreatedAndTokens =
       await this.authService.signUpLocal(signUpLocalDto);
 
-    return userCreatedAndTokens;
+    res.cookie('x-access-token', userCreatedAndTokens.tokens.access_token, {
+      // httpOnly: true,
+      // secure: true,
+      // sameSite: 'strict',
+      maxAge: Number(configuration().jwt.expiresInMs),
+    });
+
+    res.cookie('x-refresh-token', userCreatedAndTokens.tokens.refresh_token, {
+      // httpOnly: true,
+      // secure: true,
+      // sameSite: 'strict',
+      maxAge: Number(configuration().jwt.refresh_expiresInMs),
+    });
+
+    return userCreatedAndTokens.user;
   }
 
   @HttpCode(HttpStatus.OK)
