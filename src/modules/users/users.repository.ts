@@ -21,7 +21,6 @@ export class UsersRepository {
   ): Promise<UserWithProfile> {
     return this.drizzle.transaction(async (trx) => {
       await trx.insert(schema.users).values({
-        username: signUpLocal.username,
         first_name: signUpLocal.first_name,
         last_name: signUpLocal.last_name,
         email: signUpLocal.email,

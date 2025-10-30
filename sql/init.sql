@@ -4,7 +4,6 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 -- users
 create table users (
     id UUID primary key default gen_random_uuid(),
-    username VARCHAR(50) NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(50) unique NOT NULL,

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -7,7 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from '../users/users.service';
-import { SignUpLocalDto, UserCreatedAndTokensDto } from './dtos';
+import {
+  SignInLocalDto,
+  SignUpLocalDto,
+  UserCreatedAndTokensDto,
+} from './dtos';
 import { HashProvider } from './providers';
 import { AuthTokens, JwtPayload } from './models';
 import { UsersMapper } from '../users/mappers/users.mapper';
@@ -28,7 +33,9 @@ export class AuthService {
     const user = await this.usersService.findByEmail(signUpLocalDto.email);
 
     if (user) {
-      throw new ConflictException('User with this email already exists!');
+      throw new ConflictException(
+        'There is already an account associated with this email!',
+      );
     }
 
     const hashedPassword = await this.hashProvider.hashData(
@@ -40,12 +47,42 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const userSignedIn = await this.signInLocal(userCreated.id);
+    const userSignedIn = await this.signInWithUserId(userCreated.id);
 
     return userSignedIn;
   }
 
-  async signInLocal(userId: string): Promise<UserCreatedAndTokensDto> {
+  async signInLocal(body: SignInLocalDto): Promise<UserCreatedAndTokensDto> {
+    const userSignIn = await this.usersService.findByEmail(body.email);
+
+    if (!userSignIn) {
+      throw new BadRequestException('Invalid credentials!');
+    }
+
+    const { access_token, refresh_token } = await this.generateTokens(
+      userSignIn.id,
+    );
+
+    const hashedRefreshToken = await this.hashProvider.hashData(refresh_token);
+
+    await this.usersService.updateById(userSignIn.id, {
+      refresh_token: hashedRefreshToken,
+    });
+
+    const user = await this.usersMapper.usersUsersProfileToUserTokens(
+      await this.usersService.findWithProfileById(userSignIn.id),
+    );
+
+    return {
+      user: user,
+      tokens: {
+        access_token,
+        refresh_token,
+      },
+    };
+  }
+
+  async signInWithUserId(userId: string): Promise<UserCreatedAndTokensDto> {
     const { access_token, refresh_token } = await this.generateTokens(userId);
 
     const hashedRefreshToken = await this.hashProvider.hashData(refresh_token);

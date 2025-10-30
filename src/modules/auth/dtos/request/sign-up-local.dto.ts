@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const signUpLocalDtoSchema = z
   .object({
-    username: z.string().min(1).max(50),
     email: z.email().min(1).max(50),
     first_name: z.string().min(1).max(30),
     last_name: z.string().min(1).max(30),

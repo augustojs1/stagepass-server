@@ -15,7 +15,6 @@ export class UsersMapper {
 
     return {
       id: user.user.id,
-      username: user.user.username,
       email: user.user.email,
       first_name: user.user.first_name,
       last_name: user.user.last_name,

@@ -13,7 +13,6 @@ export const users = pgTable('users', {
     .default(sql`gen_random_uuid`),
   first_name: varchar({ length: 50 }).notNull(),
   last_name: varchar({ length: 50 }).notNull(),
-  username: varchar({ length: 50 }).notNull(),
   email: varchar({ length: 50 }).notNull(),
   password: varchar({ length: 255 }).notNull(),
   is_admin: boolean().$default(() => false),

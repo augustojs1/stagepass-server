@@ -5,20 +5,20 @@ import {
   HttpStatus,
   Post,
   Req,
-  Request,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
 
 import { ZodValidationPipe } from '../shared/pipes';
 import {
+  SignInLocalDto,
   signInLocalDtoSchema,
   SignUpLocalDto,
   signUpLocalDtoSchema,
   UserCreatedAndTokensDto,
 } from './dtos';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard, LocalAuthGuard } from './guards';
+import { JwtAuthGuard } from './guards';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 
 @Controller('auth')
@@ -37,11 +37,10 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(LocalAuthGuard)
   @Post('/local/sign-in')
   @UsePipes(new ZodValidationPipe(signInLocalDtoSchema))
-  async signInLocal(@Request() req): Promise<any> {
-    return await this.authService.signInLocal(req.user.id);
+  async signInLocal(@Body() body: SignInLocalDto): Promise<any> {
+    return await this.authService.signInLocal(body);
   }
 
   @UseGuards(RefreshAuthGuard)
