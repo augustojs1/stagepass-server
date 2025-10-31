@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
@@ -14,7 +14,11 @@ export class RefreshJwtStrategy extends PassportStrategy(
 ) {
   constructor(private readonly authService: AuthService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => {
+          return req?.cookies?.['x-refresh-token'] || null;
+        },
+      ]),
       secretOrKey: configuration().jwt.refresh_secret,
       ignoreExpiration: false,
       passReqToCallback: true,
@@ -22,10 +26,14 @@ export class RefreshJwtStrategy extends PassportStrategy(
   }
 
   async validate(req: Request, payload: JwtPayload) {
-    const refreshToken = req.get('authorization').replace('Bearer', '').trim();
+    const refreshToken = req?.cookies?.['x-refresh-token'];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
 
     const userId = payload.sub;
 
-    return await this.authService.validateRefreshToken(userId, refreshToken);
+    return this.authService.validateRefreshToken(userId, refreshToken);
   }
 }
