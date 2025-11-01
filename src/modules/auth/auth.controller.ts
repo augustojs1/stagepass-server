@@ -38,17 +38,25 @@ export class AuthController {
       await this.authService.signUpLocal(signUpLocalDto);
 
     res.cookie('x-access-token', userCreatedAndTokens.tokens.access_token, {
-      // httpOnly: true,
-      // secure: true,
-      // sameSite: 'strict',
+      httpOnly: true,
+      // httpOnly: true, // Prod config
+      secure: false,
+      // secure: true, // Prod config
+      sameSite: 'lax',
+      // sameSite: 'none', // Prod config
       maxAge: Number(configuration().jwt.expiresInMs),
+      path: '/',
     });
 
     res.cookie('x-refresh-token', userCreatedAndTokens.tokens.refresh_token, {
-      // httpOnly: true,
-      // secure: true,
-      // sameSite: 'strict',
-      maxAge: Number(configuration().jwt.refresh_expiresInMs),
+      httpOnly: true, // Dev only
+      // httpOnly: true, // Prod config
+      secure: false, // Dev only
+      // secure: true, // Prod config
+      sameSite: 'lax', // Dev only
+      // sameSite: 'none', // Prod config
+      maxAge: Number(configuration().jwt.expiresInMs),
+      path: '/',
     });
 
     return userCreatedAndTokens.user;
@@ -64,17 +72,25 @@ export class AuthController {
     const userLoggedIn = await this.authService.signInLocal(body);
 
     res.cookie('x-access-token', userLoggedIn.tokens.access_token, {
-      // httpOnly: true,
-      // secure: true,
-      // sameSite: 'strict',
+      httpOnly: true,
+      // httpOnly: true, // Prod config
+      secure: false,
+      // secure: true, // Prod config
+      sameSite: 'lax',
+      // sameSite: 'none', // Prod config
       maxAge: Number(configuration().jwt.expiresInMs),
+      path: '/',
     });
 
     res.cookie('x-refresh-token', userLoggedIn.tokens.refresh_token, {
-      // httpOnly: true,
-      // secure: true,
-      // sameSite: 'strict',
-      maxAge: Number(configuration().jwt.refresh_expiresInMs),
+      httpOnly: true, // Dev only
+      // httpOnly: true, // Prod config
+      secure: false, // Dev only
+      // secure: true, // Prod config
+      sameSite: 'lax', // Dev only
+      // sameSite: 'none', // Prod config
+      maxAge: Number(configuration().jwt.expiresInMs),
+      path: '/',
     });
 
     return userLoggedIn.user;
@@ -86,17 +102,25 @@ export class AuthController {
     const tokens = await this.authService.refreshToken(req.user.id);
 
     res.cookie('x-access-token', tokens.access_token, {
-      // httpOnly: true,
-      // secure: true,
-      // sameSite: 'strict',
+      httpOnly: true,
+      // httpOnly: true, // Prod config
+      secure: false,
+      // secure: true, // Prod config
+      sameSite: 'lax',
+      // sameSite: 'none', // Prod config
       maxAge: Number(configuration().jwt.expiresInMs),
+      path: '/',
     });
 
     res.cookie('x-refresh-token', tokens.refresh_token, {
-      // httpOnly: true,
-      // secure: true,
-      // sameSite: 'strict',
-      maxAge: Number(configuration().jwt.refresh_expiresInMs),
+      httpOnly: true, // Dev only
+      // httpOnly: true, // Prod config
+      secure: false, // Dev only
+      // secure: true, // Prod config
+      sameSite: 'lax', // Dev only
+      // sameSite: 'none', // Prod config
+      maxAge: Number(configuration().jwt.expiresInMs),
+      path: '/',
     });
   }
 
