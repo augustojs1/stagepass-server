@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
+import { AppExceptionFilter } from '@/infra/filters';
 
 async function bootstrap() {
   const PORT = process.env.PORT;
@@ -29,7 +30,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // app.useGlobalFilters(new AppExceptionFilter());
+  app.useGlobalFilters(new AppExceptionFilter());
 
   app.setGlobalPrefix('api/v1');
 
