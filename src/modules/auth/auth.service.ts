@@ -59,6 +59,15 @@ export class AuthService {
       throw new BadRequestException('Invalid credentials!');
     }
 
+    const isPasswordMatch = await this.hashProvider.compare(
+      body.password,
+      userSignIn.password,
+    );
+
+    if (!isPasswordMatch) {
+      throw new BadRequestException('Invalid credentials!');
+    }
+
     const { access_token, refresh_token } = await this.generateTokens(
       userSignIn.id,
     );
