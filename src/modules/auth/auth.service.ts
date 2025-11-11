@@ -177,7 +177,7 @@ export class AuthService {
     userId: string,
     refreshToken: string,
   ): Promise<{ id: string }> {
-    const user = await this.usersService.findById(userId);
+    const user = await this.usersService.findByIdElseThrow(userId);
 
     if (!user.refresh_token) {
       throw new UnauthorizedException('Invalid refresh token!');

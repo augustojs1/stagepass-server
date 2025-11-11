@@ -93,4 +93,11 @@ export class UsersRepository {
       .set(userData as any)
       .where(eq(schema.users.id, user_id));
   }
+
+  async updateUserProfileById(user_id: string, userData: Partial<UserEntity>) {
+    await this.drizzle
+      .update(schema.users_profile)
+      .set(userData as any)
+      .where(eq(schema.users_profile.user_id, user_id));
+  }
 }
