@@ -127,6 +127,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('/local/sign-out')
   async signOutLocal(@Req() req) {
-    await this.authService.signOutLocal(req.user.id);
+    await this.authService.signOutLocal(req.user.sub);
   }
 }
