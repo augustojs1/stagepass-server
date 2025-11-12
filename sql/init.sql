@@ -1,5 +1,7 @@
+-- Extension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- users
 create table users (
@@ -14,7 +16,6 @@ create table users (
 );
 
 CREATE index users_email_idx on users (email);
-CREATE index users_username_idx on users (username);
 
 -- users_profile
 create table users_profile (
@@ -26,57 +27,57 @@ create table users_profile (
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
---create type event_categories as enum ( 'MUSIC',
---  'SPORT',
---  'EXHIBITION',
---  'BUSINESS',
---  'PHOTOGRAPHY',
---  'THEATER',
---  'COMEDY',
---  'CINEMA',
---  'EDUCATION',
---  'FOOD_DRINK',
---  'GAMING',
---  'COMMUNITY',
---  'FAIR_MARKET',
---  'FESTIVAL');
--- 
-
--- event_categories
-create table event_categories (
+-- categories
+create table categories (
 	id UUID primary key default gen_random_uuid(),
 	name VARCHAR(100) unique not NULL,
 	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO
+	categories (name)
+VALUES 
+	('Music',
+	'Sport',
+	'Exhibition',
+	'Business',
+	'Photography',
+	'Theater',
+	'Comedy',
+	'Cinema',
+	'Education',
+	'Gaming',
+	'Festival'
+	);
+
 create index event_categories_name_idx on event_categories (name);
- 
+
 -- countries
 CREATE TABLE countries (
 	code CHAR(2) PRIMARY KEY,
 	name VARCHAR(50) NOT NULL
 );
 
+create index countries_code_idx ON countries (code);
+
 -- events
 create table events (
-	id UUID primary key default gen_random_uuid(),
+	id UUID primary key default gen_random_uuid() NOT NULL,
 	organizer_id UUID references users (id) not NULL,
-	category_id UUID references event_categories (id) not NULL,
-	name VARCHAR(50) unique not NULL,
+	event_category_id UUID references categories (id) NOT NULL,
+	is_free BOOLEAN not null,
+	name VARCHAR(100) not NULL,
 	description text not NULL,
-	banner_url TEXT not NULL,
-	is_free BOOLEAN not NULL,
+	banner_url text not null,
+	address_street VARCHAR(100) not null,
+	address_number VARCHAR(20) not null,
+	address_neighborhood VARCHAR(100) not null,
+	address_district VARCHAR(100) not null,
+	country_id CHAR(2) references countries (code),
+	location GEOGRAPHY(Point, 4326) not null,
 	starts_at TIMESTAMPTZ not null,
 	ends_at TIMESTAMPTZ not null,
-	zipcode VARCHAR(100),
-	street VARCHAR(100),
-	neighborhood VARCHAR(100),
-	district VARCHAR(100),
-	city VARCHAR(100),
-	latitude  NUMERIC(9,6) not null,
-	longitude NUMERIC(9,6) not null,
-	country_id CHAR(2) references countries (code) not NULL,
 	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -91,6 +92,25 @@ check
 CREATE INDEX events_name_trgm_idx ON events USING gin (name gin_trgm_ops);
 create index events_starts_at_idx on events(starts_at);
 CREATE INDEX events_lat_long_idx ON events(latitude, longitude);
+
+-- event_tickets
+create table event_tickets (
+	id UUID primary key default gen_random_uuid() not null,
+	event_id UUID references events (id) not null,
+	name VARCHAR(50) not null,
+	price BIGINT not null,
+	amount INT not null,
+	sold boolean default false,
+	updated_at TIMESTAMPTZ default CURRENT_TIMESTAMP,
+	created_at TIMESTAMPTZ default CURRENT_TIMESTAMP
+);
+
+alter table
+	event_tickets
+add constraint
+	non_zero_price
+check
+	(price > 0);
 
 -- countries seed
 INSERT INTO countries (name, code) VALUES
@@ -284,3 +304,6 @@ INSERT INTO countries (name, code) VALUES
 ('Saint Kitts and Nevis', 'KN'),
 ('Saint Lucia', 'LC'),
 ('Saint Martin', 'MF');
+
+
+

@@ -1,6 +1,6 @@
 services:
   stagepass_db:
-    image: postgres:16-alpine
+    image: mdillon/postgis
     restart: always
     environment:
       POSTGRES_DB: "stagepass_db"
@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - stagepass_db_data:/var/lib/postgresql/data
+      - stagepass_db_data:/var/lib/postgresql_11/data
 
   # stagepass_server:
   #   build: .
