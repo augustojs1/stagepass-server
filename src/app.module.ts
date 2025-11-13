@@ -7,6 +7,7 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { DrizzleModule } from '@/infra/database/orm/drizzle/drizzle.module';
 import { UsersModule } from '@/modules/users/users.module';
 import { HttpRequestInterceptor } from '@/infra/interceptors';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { HttpRequestInterceptor } from '@/infra/interceptors';
     DrizzleModule,
     AuthModule,
     UsersModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [
