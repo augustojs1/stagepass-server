@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   UsePipes,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { CategoriesService } from './categories.service';
@@ -41,7 +42,7 @@ export class CategoriesController {
   @Patch(':id')
   @UsePipes(new ZodValidationPipe(updateCategoryDtoSchema))
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<void> {
     return this.categoriesService.update(id, updateCategoryDto);
@@ -49,7 +50,7 @@ export class CategoriesController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return await this.categoriesService.remove(id);
   }
 }
