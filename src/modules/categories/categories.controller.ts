@@ -18,7 +18,7 @@ import {
   updateCategoryDtoSchema,
   createCategoryDtoSchema,
 } from './dto';
-import { JwtAuthGuard } from '../auth/guards';
+import { AdminUserGuard, JwtAuthGuard } from '../auth/guards';
 import { CategoryEntity } from './models';
 import { ZodValidationPipe } from '../shared/pipes';
 
@@ -26,7 +26,7 @@ import { ZodValidationPipe } from '../shared/pipes';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminUserGuard)
   @Post()
   @UsePipes(new ZodValidationPipe(createCategoryDtoSchema))
   async create(@Body() createCategoryDto: CreateCategoryDto): Promise<void> {
@@ -38,7 +38,7 @@ export class CategoriesController {
     return await this.categoriesService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminUserGuard)
   @Patch(':id')
   @UsePipes(new ZodValidationPipe(updateCategoryDtoSchema))
   update(
@@ -48,7 +48,7 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminUserGuard)
   @Delete(':id')
   async remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
     return await this.categoriesService.remove(id);

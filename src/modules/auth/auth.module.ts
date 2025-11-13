@@ -26,6 +26,5 @@ import { LocalStrategy, JwtStrategy, RefreshJwtStrategy } from './strategies';
     JwtStrategy,
     RefreshJwtStrategy,
   ],
-  exports: [],
 })
 export class AuthModule {}
