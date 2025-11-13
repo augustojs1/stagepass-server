@@ -34,6 +34,15 @@ export class CategoriesRepository {
     return category[0] || null;
   }
 
+  async findByName(name: string): Promise<CategoryEntity | null> {
+    const category = await this.drizzle
+      .select()
+      .from(schema.categories)
+      .where(eq(schema.categories.name, name));
+
+    return category[0] || null;
+  }
+
   async update(category_id: string, name: string): Promise<void> {
     await this.drizzle
       .update(schema.categories)

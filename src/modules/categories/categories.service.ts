@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { UpdateCategoryDto, CreateCategoryDto } from './dto';
 import { CategoriesRepository } from './categories.repository';
@@ -9,6 +13,14 @@ export class CategoriesService {
   constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
   async create(createCategoryDto: CreateCategoryDto): Promise<void> {
+    const existentCategory = await this.categoriesRepository.findByName(
+      createCategoryDto.name,
+    );
+
+    if (existentCategory) {
+      throw new ConflictException('Category with this name already exists!');
+    }
+
     await this.categoriesRepository.create(createCategoryDto.name);
   }
 

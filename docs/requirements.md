@@ -14,24 +14,28 @@
 
 ### Authentication
 
-- [ ] Users should be able sign-up
-- [ ] User should be able to sign-in
-  - [ ] Sign-in via local email and password
-  - [ ] Sign-in via local email and password should return access and refresh token
+- [x] Users should be able sign-up
+- [x] User should be able to sign-in
+  - [x] Sign-in via local email and password
+  - [x] Sign-in via local email and password should return access and refresh token
   - [ ] Sign-in via Google Auth
-  - [ ] Sign-in via One Time Password
 - [ ] Users should be able to reset their password
 - [ ] Users should be able to verify their email after sign-up
 
+### Categories
+
+- [x] Admin Users should be able to create a category
+- [x] Admin Users Users should be able to update a category
+- [x] Admin Users should be able to delete a category
+
 ### Events
 
+- [ ] Users should be able to create events
 - [ ] Users should be able to see a list of events that is yet to happen
 - [ ] Users should be able to filter events by category, pricing and type
 - [ ] Users should be able to search event by name
 - [ ] Users should be able to filter events around them with geolocation
-- [ ] Users should be able to create events
 - [ ] Users should be able to update or cancel their events
-- [ ] Events should not be deletable if tickets have already been sold
 
 ### Event Tickets
 
