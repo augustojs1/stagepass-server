@@ -6,40 +6,50 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 
 import { CategoriesService } from './categories.service';
-import { UpdateCategoryDto, CreateCategoryDto } from './dto';
+import {
+  UpdateCategoryDto,
+  CreateCategoryDto,
+  updateCategoryDtoSchema,
+  createCategoryDtoSchema,
+} from './dto';
+import { JwtAuthGuard } from '../auth/guards';
+import { CategoryEntity } from './models';
+import { ZodValidationPipe } from '../shared/pipes';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
+  @UsePipes(new ZodValidationPipe(createCategoryDtoSchema))
+  async create(@Body() createCategoryDto: CreateCategoryDto): Promise<void> {
+    return await this.categoriesService.create(createCategoryDto);
   }
 
   @Get()
-  findAll() {
-    return this.categoriesService.findAll();
+  async findAll(): Promise<CategoryEntity[]> {
+    return await this.categoriesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(id);
-  }
-
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
+  @UsePipes(new ZodValidationPipe(updateCategoryDtoSchema))
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
-  ) {
+  ): Promise<void> {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+  async remove(@Param('id') id: string): Promise<void> {
+    return await this.categoriesService.remove(id);
   }
 }

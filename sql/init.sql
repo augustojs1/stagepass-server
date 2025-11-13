@@ -11,6 +11,7 @@ create table users (
     email VARCHAR(50) unique NOT NULL,
     "password" VARCHAR(255) NOT NULL,
     is_admin BOOLEAN DEFAULT FALSE,
+		refresh_token TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

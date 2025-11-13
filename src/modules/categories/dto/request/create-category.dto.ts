@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-export const createCategoryDto = z
+export const createCategoryDtoSchema = z
   .object({
     name: z.string().min(1).max(50),
   })
   .required();
 
-export type CreateCategoryDto = z.infer<typeof createCategoryDto>;
+export type CreateCategoryDto = z.infer<typeof createCategoryDtoSchema>;

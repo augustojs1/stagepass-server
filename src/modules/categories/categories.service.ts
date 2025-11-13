@@ -1,26 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { UpdateCategoryDto, CreateCategoryDto } from './dto';
+import { CategoriesRepository } from './categories.repository';
+import { CategoryEntity } from './models';
 
 @Injectable()
 export class CategoriesService {
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  constructor(private readonly categoriesRepository: CategoriesRepository) {}
+
+  async create(createCategoryDto: CreateCategoryDto): Promise<void> {
+    await this.categoriesRepository.create(createCategoryDto.name);
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  async findAll(): Promise<CategoryEntity[]> {
+    return await this.categoriesRepository.findAll();
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} category`;
+  async findOneElseThrow(id: string): Promise<CategoryEntity> {
+    const category = await this.categoriesRepository.findById(id);
+
+    if (!category) {
+      throw new NotFoundException('Category with this Id not found!');
+    }
+
+    return category;
   }
 
-  update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<void> {
+    const category = await this.findOneElseThrow(id);
+
+    await this.categoriesRepository.update(category.id, updateCategoryDto.name);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: string): Promise<void> {
+    const category = await this.findOneElseThrow(id);
+
+    await this.categoriesRepository.delete(category.id);
   }
 }

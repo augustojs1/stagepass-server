@@ -31,6 +31,8 @@ export class AppExceptionFilter implements ExceptionFilter {
       });
     }
 
+    console.log(exception);
+
     if (exception?.code && exception?.sqlMessage) {
       this.logger.error({
         type: 'Database error',
@@ -48,9 +50,8 @@ export class AppExceptionFilter implements ExceptionFilter {
 
     this.logger.error({
       type: 'Unhandled Exception',
-      statusCode: exception?.getStatus() ?? 500,
-      error: exception?.getResponse() ?? 'Unhandled Exception',
-      stack: exception?.stack ?? {},
+      statusCode: 500,
+      error: exception,
     });
 
     return response.status(500).send({
