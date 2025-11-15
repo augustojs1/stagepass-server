@@ -71,10 +71,12 @@ create table events (
 	name VARCHAR(100) not NULL,
 	description text not NULL,
 	banner_url text not null,
+	slug TEXT NOT NULL,
 	address_street VARCHAR(100) not null,
 	address_number VARCHAR(20) not null,
 	address_neighborhood VARCHAR(100) not null,
 	address_district VARCHAR(100) not null,
+	address_city VARCHAR(100) not null,
 	country_id CHAR(2) references countries (code),
 	location GEOGRAPHY(Point, 4326) not null,
 	starts_at TIMESTAMPTZ not null,
@@ -92,7 +94,7 @@ check
 
 CREATE INDEX events_name_trgm_idx ON events USING gin (name gin_trgm_ops);
 create index events_starts_at_idx on events(starts_at);
-CREATE INDEX events_lat_long_idx ON events(latitude, longitude);
+CREATE INDEX events_slug_idx ON events(slug);
 
 -- event_tickets
 create table event_tickets (
