@@ -46,7 +46,7 @@ export const events = pgTable(
       mode: 'xy',
       srid: 4326,
     }).notNull(),
-    stats_at: timestamp().notNull(),
+    starts_at: timestamp().notNull(),
     ends_at: timestamp().notNull(),
     updated_at: timestamp().defaultNow(),
     created_at: timestamp().defaultNow(),

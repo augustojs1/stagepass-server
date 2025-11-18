@@ -34,7 +34,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
-  await app.listen(PORT ?? 3000, '0.0.0.0');
+  await app.listen(PORT ?? 8080, '0.0.0.0');
 
   console.log(`Server running in ${NODE_ENV} mode on port ${PORT}! 🚀`);
 }

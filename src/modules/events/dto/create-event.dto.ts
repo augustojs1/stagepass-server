@@ -1,1 +1,20 @@
-export class CreateEventDto {}
+import { z } from 'zod';
+
+export const createEventDtoSchema = z
+  .object({
+    event_category_id: z.string().min(1).max(50),
+    name: z.string().min(1).max(50),
+    description: z.string().min(1).max(500),
+    is_free: z.boolean(),
+    address_street: z.string().min(1).max(30),
+    address_number: z.string().min(1).max(30),
+    address_neighborhood: z.string().min(1).max(30),
+    address_district: z.string().min(1).max(30),
+    address_city: z.string().min(1).max(30),
+    country_id: z.string().min(1).max(30),
+    starts_at: z.coerce.date(),
+    ends_at: z.coerce.date(),
+  })
+  .strict();
+
+export type CreateEventDto = z.infer<typeof createEventDtoSchema>;

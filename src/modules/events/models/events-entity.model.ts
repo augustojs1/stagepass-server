@@ -14,8 +14,8 @@ export class EventsEntity {
   address_city: string;
   country_id: string;
   location: string;
-  starts_at: string;
-  ends_at: string;
+  starts_at: Date | string;
+  ends_at: Date | string;
   updated_at: Date | string;
   created_at: Date | string;
 }

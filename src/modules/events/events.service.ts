@@ -1,11 +1,23 @@
 import { Injectable } from '@nestjs/common';
+
 import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
+import { EventsRepository } from './events.repository';
 
 @Injectable()
 export class EventsService {
-  create(createEventDto: CreateEventDto) {
-    return 'This action adds a new event';
+  constructor(private readonly eventsRepository: EventsRepository) {}
+
+  async create(createEventDto: CreateEventDto) {
+    // check if event category exists
+    // check if same name event exists
+    // check if end date is after start date
+    // get latitude and longitude for location via address zipcode
+    // upload banner image
+    // upload event gallery images
+    // create event tickets
+    // create event
+
+    await this.eventsRepository.create(createEventDto);
   }
 
   findAll() {
@@ -14,13 +26,5 @@ export class EventsService {
 
   findOne(id: number) {
     return `This action returns a #${id} event`;
-  }
-
-  update(id: number, updateEventDto: UpdateEventDto) {
-    return `This action updates a #${id} event`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} event`;
   }
 }
