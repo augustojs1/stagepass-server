@@ -1,9 +1,14 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventsRepository } from './events.repository';
 import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
+import { SlugProvider, DateProvider } from '@/modules/shared/providers';
 
 @Injectable()
 export class EventsService {
@@ -11,6 +16,8 @@ export class EventsService {
     private readonly eventsRepository: EventsRepository,
     private readonly eventsMapper: EventsMapper,
     private readonly categoriesService: CategoriesService,
+    private readonly slugProvider: SlugProvider,
+    private readonly dateProvider: DateProvider,
   ) {}
 
   async create(user_id: string, createEventDto: CreateEventDto) {
@@ -28,16 +35,31 @@ export class EventsService {
       throw new ConflictException('Event name already in use!');
     }
 
-    // create slug
     // check if end date is after start date
+    const isStartsAtBeforeEndsAt = this.dateProvider.isAfter(
+      createEventDto.starts_at,
+      createEventDto.ends_at,
+    );
+
+    if (!isStartsAtBeforeEndsAt) {
+      throw new BadRequestException(
+        'Starts at date should not be before ends at date.',
+      );
+    }
+
+    // create slug
+    const slug = this.slugProvider.slugify(createEventDto.name);
+
     // get latitude and longitude for location via address zipcode
     // upload banner image
     // upload event gallery images
-    // create event tickets
     // treat price in cents
     // create event
+    // create event tickets
 
-    // const event = await this.eventsRepository.create(createEventDto);
+    // const event = await this.eventsRepository.create({
+    //   ...createEventDto,
+    // });
 
     // await this.eventsRepository.createEventTickets(
     //   this.eventsMapper.eventTicketDtoToCreateEventTicketData(
