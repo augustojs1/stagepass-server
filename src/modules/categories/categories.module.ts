@@ -9,6 +9,7 @@ import { UsersModule } from '../users/users.module';
 @Module({
   controllers: [CategoriesController],
   providers: [CategoriesService, CategoriesRepository, JwtService],
-  imports: [UsersModule],
+  imports: [UsersModule, CategoriesModule],
+  exports: [CategoriesService],
 })
 export class CategoriesModule {}

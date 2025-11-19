@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
 
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
@@ -35,7 +36,14 @@ export class EventsRepository {
     await this.drizzle.insert(schema.event_tickets).values(data);
   }
 
-  async findByName(name: string) {}
+  async findByName(name: string): Promise<EventsEntity | null> {
+    const events = await this.drizzle
+      .select()
+      .from(schema.events)
+      .where(eq(schema.events.name, name));
+
+    return events[0];
+  }
 
   async findBySlug(slug: string) {}
 }
