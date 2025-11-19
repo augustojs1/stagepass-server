@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventsRepository } from './events.repository';
+import { EventsMapper } from './mappers/events.mapper';
 
 @Injectable()
 export class EventsService {
-  constructor(private readonly eventsRepository: EventsRepository) {}
+  constructor(
+    private readonly eventsRepository: EventsRepository,
+    private readonly eventsMapper: EventsMapper,
+  ) {}
 
   async create(createEventDto: CreateEventDto) {
     // check if event category exists
@@ -15,9 +19,17 @@ export class EventsService {
     // upload banner image
     // upload event gallery images
     // create event tickets
+    // treat price in cents
     // create event
 
-    await this.eventsRepository.create(createEventDto);
+    const event = await this.eventsRepository.create(createEventDto);
+
+    await this.eventsRepository.createEventTickets(
+      this.eventsMapper.eventTicketDtoToCreateEventTicketData(
+        event.id,
+        createEventDto.event_tickets,
+      ),
+    );
   }
 
   findAll() {
