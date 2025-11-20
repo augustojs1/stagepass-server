@@ -25,7 +25,10 @@ export class EventsService {
   async create(
     user_id: string,
     createEventDto: CreateEventDto,
-    banner_image_file: Express.Multer.File,
+    files: {
+      banner_image?: Express.Multer.File[];
+      images?: Express.Multer.File[];
+    },
   ) {
     // check if event category exists
     const category = await this.categoriesService.findOneElseThrow(
@@ -59,7 +62,7 @@ export class EventsService {
     // get latitude and longitude for location via address zipcode
     // upload banner image
     const bannerImageUrl = await this.storageService.upload(
-      banner_image_file,
+      files.banner_image[0],
       `user_${user_id}/event_123`,
     );
 

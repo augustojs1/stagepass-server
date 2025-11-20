@@ -7,15 +7,13 @@ import {
   UseGuards,
   Req,
   UseInterceptors,
-  UploadedFile,
-  ParseFilePipeBuilder,
-  HttpStatus,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { EventsService } from './events.service';
 import { CreateEventDto, createEventDtoSchema } from './dto/create-event.dto';
-import { ZodValidationPipe } from '../shared/pipes';
+import { MultiFileValidationPipe, ZodValidationPipe } from '../shared/pipes';
 import { JwtAuthGuard } from '../auth/guards';
 
 @Controller('events')
@@ -24,28 +22,28 @@ export class EventsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UseInterceptors(FileInterceptor('banner_image'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'banner_image', maxCount: 1 },
+      { name: 'images', maxCount: 8 },
+    ]),
+  )
   async create(
     @Req() req,
     @Body(new ZodValidationPipe(createEventDtoSchema))
     createEventDto: CreateEventDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: /^image/ })
-        .addMaxSizeValidator({
-          maxSize: 7_000_000, // 7 MB
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        }),
+    @UploadedFiles(
+      new MultiFileValidationPipe({
+        maxSize: 7_000_000,
+        fileTypes: [/^image\//],
+      }),
     )
-    banner_image_file: Express.Multer.File,
+    files: {
+      banner_image?: Express.Multer.File[];
+      images?: Express.Multer.File[];
+    },
   ) {
-    return await this.eventsService.create(
-      req.user.sub,
-      createEventDto,
-      banner_image_file,
-    );
+    return await this.eventsService.create(req.user.sub, createEventDto, files);
   }
 
   @Get()
