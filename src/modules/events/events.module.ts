@@ -8,6 +8,7 @@ import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesModule } from '../categories/categories.module';
 import { SlugProvider } from '../shared/providers';
 import { DateProvider } from '../shared/providers/date.provider';
+import { DiskStorageService, IStorageService } from '@/infra/storage';
 
 @Module({
   controllers: [EventsController],
@@ -18,6 +19,10 @@ import { DateProvider } from '../shared/providers/date.provider';
     JwtService,
     SlugProvider,
     DateProvider,
+    {
+      provide: IStorageService,
+      useClass: DiskStorageService,
+    },
   ],
   imports: [CategoriesModule],
 })

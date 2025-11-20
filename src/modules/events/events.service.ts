@@ -9,6 +9,7 @@ import { EventsRepository } from './events.repository';
 import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
+import { IStorageService } from '@/infra/storage';
 
 @Injectable()
 export class EventsService {
@@ -18,9 +19,14 @@ export class EventsService {
     private readonly categoriesService: CategoriesService,
     private readonly slugProvider: SlugProvider,
     private readonly dateProvider: DateProvider,
+    private readonly storageService: IStorageService,
   ) {}
 
-  async create(user_id: string, createEventDto: CreateEventDto) {
+  async create(
+    user_id: string,
+    createEventDto: CreateEventDto,
+    banner_image_file: Express.Multer.File,
+  ) {
     // check if event category exists
     const category = await this.categoriesService.findOneElseThrow(
       createEventDto.event_category_id,
@@ -52,6 +58,11 @@ export class EventsService {
 
     // get latitude and longitude for location via address zipcode
     // upload banner image
+    const bannerImageUrl = await this.storageService.upload(
+      banner_image_file,
+      `user_${user_id}/event_123`,
+    );
+
     // upload event gallery images
     // treat price in cents
     // create event

@@ -4,10 +4,14 @@ import {
   Post,
   Body,
   Param,
-  UsePipes,
   UseGuards,
   Req,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { EventsService } from './events.service';
 import { CreateEventDto, createEventDtoSchema } from './dto/create-event.dto';
@@ -20,9 +24,28 @@ export class EventsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UsePipes(new ZodValidationPipe(createEventDtoSchema))
-  async create(@Req() req, @Body() createEventDto: CreateEventDto) {
-    return await this.eventsService.create(req.user.sub, createEventDto);
+  @UseInterceptors(FileInterceptor('banner_image'))
+  async create(
+    @Req() req,
+    @Body(new ZodValidationPipe(createEventDtoSchema))
+    createEventDto: CreateEventDto,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: /^image/ })
+        .addMaxSizeValidator({
+          maxSize: 7_000_000, // 7 MB
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    banner_image_file: Express.Multer.File,
+  ) {
+    return await this.eventsService.create(
+      req.user.sub,
+      createEventDto,
+      banner_image_file,
+    );
   }
 
   @Get()
