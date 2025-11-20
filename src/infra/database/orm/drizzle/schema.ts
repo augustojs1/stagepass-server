@@ -4,3 +4,4 @@ export * from '@/modules/categories/entities/category.entity';
 export * from '@/modules/shared/entities/countries.entity';
 export * from '@/modules/events/entities/event.entity';
 export * from '@/modules/events/entities/event-tickets.entity';
+export * from '@/modules/events/entities/event-images.entity';

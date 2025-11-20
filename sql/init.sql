@@ -115,6 +115,18 @@ add constraint
 check
 	(price > 0);
 
+-- event_images
+CREATE TABLE event_images (
+	id UUID primary key default gen_random_uuid(),
+	event_id UUID references events (id) not null,
+	name TEXT NOT NULL,
+	url TEXT NOT NUll,
+	mimetype VARCHAR(20) NOT NULL,
+	size INT NOT NULL,
+	updated_at TIMESTAMPTZ default CURRENT_TIMESTAMP,
+	created_at TIMESTAMPTZ default CURRENT_TIMESTAMP
+);
+
 -- countries seed
 INSERT INTO countries (name, code) VALUES
 ('Afghanistan', 'AF'),

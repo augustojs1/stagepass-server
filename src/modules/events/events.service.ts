@@ -60,27 +60,51 @@ export class EventsService {
     const slug = this.slugProvider.slugify(createEventDto.name);
 
     // get latitude and longitude for location via address zipcode
+
     // upload banner image
     const bannerImageUrl = await this.storageService.upload(
       files.banner_image[0],
-      `user_${user_id}/event_123`,
+      `user_${user_id}/slug/banner`,
     );
 
-    // upload event gallery images
     // treat price in cents
+
     // create event
+    const event = await this.eventsRepository.create({
+      ...createEventDto,
+    });
+
+    // upload event gallery images
+    await this.createEventImages(user_id, event.id, files.images);
+
     // create event tickets
-
-    // const event = await this.eventsRepository.create({
-    //   ...createEventDto,
-    // });
-
     // await this.eventsRepository.createEventTickets(
     //   this.eventsMapper.eventTicketDtoToCreateEventTicketData(
     //     event.id,
     //     createEventDto.event_tickets,
     //   ),
     // );
+  }
+
+  async createEventImages(
+    user_id: string,
+    event_id: string,
+    event_images: Express.Multer.File[],
+  ): Promise<void> {
+    for (const image of event_images) {
+      const imageUrl = await this.storageService.upload(
+        image,
+        `user_${user_id}/event_${event_id}/images`,
+      );
+
+      await this.eventsRepository.createEventImage({
+        event_id: event_id,
+        url: imageUrl,
+        mimetype: image.mimetype,
+        name: image.filename,
+        size: image.size,
+      });
+    }
   }
 
   findAll() {

@@ -5,7 +5,12 @@ import { eq } from 'drizzle-orm';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
 import { CreateEventDto } from './dto/create-event.dto';
-import { CreateEventTicketData, EventsEntity } from './models';
+import {
+  CreateEventImageData,
+  CreateEventTicketData,
+  EventsEntity,
+} from './models';
+import { EventImageEntity } from './models/event-image-entity.model';
 
 @Injectable()
 export class EventsRepository {
@@ -45,5 +50,20 @@ export class EventsRepository {
     return events[0];
   }
 
-  async findBySlug(slug: string) {}
+  async findBySlug(slug: string): Promise<EventsEntity | null> {
+    const events = await this.drizzle
+      .select()
+      .from(schema.events)
+      .where(eq(schema.events.slug, slug));
+
+    return events[0];
+  }
+
+  async createEventImage(
+    createEventImageData: CreateEventImageData,
+  ): Promise<void> {
+    await this.drizzle.insert(schema.event_images).values({
+      ...createEventImageData,
+    } as EventImageEntity);
+  }
 }
