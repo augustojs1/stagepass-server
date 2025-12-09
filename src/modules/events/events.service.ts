@@ -67,23 +67,28 @@ export class EventsService {
       `user_${user_id}/slug/banner`,
     );
 
-    // treat price in cents
-
     // create event
     const event = await this.eventsRepository.create({
       ...createEventDto,
+      organizer_id: user_id,
+      banner_url: bannerImageUrl,
+      slug: slug,
+      location: { x: -90.9, y: 18.7 },
+      starts_at: new Date(createEventDto.starts_at),
+      ends_at: new Date(createEventDto.ends_at),
     });
 
     // upload event gallery images
     await this.createEventImages(user_id, event.id, files.images);
 
     // create event tickets
-    // await this.eventsRepository.createEventTickets(
-    //   this.eventsMapper.eventTicketDtoToCreateEventTicketData(
-    //     event.id,
-    //     createEventDto.event_tickets,
-    //   ),
-    // );
+    // treat price in cents
+    await this.eventsRepository.createEventTickets(
+      this.eventsMapper.eventTicketDtoToCreateEventTicketData(
+        event.id,
+        createEventDto.event_tickets,
+      ),
+    );
   }
 
   async createEventImages(
@@ -101,7 +106,7 @@ export class EventsService {
         event_id: event_id,
         url: imageUrl,
         mimetype: image.mimetype,
-        name: image.filename,
+        name: image.originalname,
         size: image.size,
       });
     }

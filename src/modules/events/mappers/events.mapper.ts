@@ -12,6 +12,7 @@ export class EventsMapper {
     return event_ticket_dto.map((event_ticket) => {
       return {
         event_id: event_id,
+        price: event_ticket.price * 100,
         ...event_ticket,
       };
     });
