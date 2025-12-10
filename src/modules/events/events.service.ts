@@ -10,6 +10,7 @@ import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
 import { IStorageService } from '@/infra/storage';
+import { GeocoderService } from './providers';
 
 @Injectable()
 export class EventsService {
@@ -20,6 +21,7 @@ export class EventsService {
     private readonly slugProvider: SlugProvider,
     private readonly dateProvider: DateProvider,
     private readonly storageService: IStorageService,
+    private readonly geocoderService: GeocoderService,
   ) {}
 
   async create(
@@ -31,7 +33,7 @@ export class EventsService {
     },
   ) {
     // check if event category exists
-    const category = await this.categoriesService.findOneElseThrow(
+    await this.categoriesService.findOneElseThrow(
       createEventDto.event_category_id,
     );
 
@@ -60,6 +62,13 @@ export class EventsService {
     const slug = this.slugProvider.slugify(createEventDto.name);
 
     // get latitude and longitude for location via address zipcode
+    const geocodeResponse = await this.geocoderService.forwardGeocode({
+      complement: createEventDto.address_number,
+      street: createEventDto.address_street,
+      city: createEventDto.address_city,
+    });
+
+    // check if geocodeResponse address exists
 
     // upload banner image
     const bannerImageUrl = await this.storageService.upload(
@@ -73,7 +82,7 @@ export class EventsService {
       organizer_id: user_id,
       banner_url: bannerImageUrl,
       slug: slug,
-      location: { x: -90.9, y: 18.7 },
+      location: { x: geocodeResponse.longitude, y: geocodeResponse.latitude },
       starts_at: new Date(createEventDto.starts_at),
       ends_at: new Date(createEventDto.ends_at),
     });

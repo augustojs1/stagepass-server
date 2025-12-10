@@ -9,6 +9,7 @@ import { CategoriesModule } from '../categories/categories.module';
 import { SlugProvider } from '../shared/providers';
 import { DateProvider } from '../shared/providers/date.provider';
 import { DiskStorageService, IStorageService } from '@/infra/storage';
+import { GeocoderService } from './providers';
 
 @Module({
   controllers: [EventsController],
@@ -19,6 +20,7 @@ import { DiskStorageService, IStorageService } from '@/infra/storage';
     JwtService,
     SlugProvider,
     DateProvider,
+    GeocoderService,
     {
       provide: IStorageService,
       useClass: DiskStorageService,

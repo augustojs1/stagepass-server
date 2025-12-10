@@ -18,4 +18,5 @@ export const configuration = () => ({
     refresh_expiresIn: process.env.JWT_REFRESH_EXPIRE_IN,
     refresh_expiresInMs: process.env.JWT_REFRESH_EXPIRE_IN_MS,
   },
+  geocoder_api_key: process.env.GEOCODER_PROVIDER_API_KEY,
 });
