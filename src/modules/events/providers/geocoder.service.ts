@@ -22,11 +22,11 @@ export class GeocoderService {
     complement,
     city,
     street,
-  }: ForwardGeocoderData): Promise<ForwardGeocoderResponse> {
+  }: ForwardGeocoderData): Promise<ForwardGeocoderResponse | null> {
     const result = await this.geocoder.geocode(
       `${complement}, ${city}, ${street}`,
     );
 
-    return result[0] as ForwardGeocoderResponse;
+    return (result[0] as ForwardGeocoderResponse) || null;
   }
 }

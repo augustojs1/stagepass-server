@@ -12,9 +12,13 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { EventsService } from './events.service';
-import { CreateEventDto, createEventDtoSchema } from './dto/create-event.dto';
+import {
+  CreateEventDto,
+  createEventDtoSchema,
+} from './dto/request/create-event.dto';
 import { MultiFileValidationPipe, ZodValidationPipe } from '../shared/pipes';
 import { JwtAuthGuard } from '../auth/guards';
+import { CreateEventResponseDto } from './dto';
 
 @Controller('events')
 export class EventsController {
@@ -42,7 +46,7 @@ export class EventsController {
       banner_image?: Express.Multer.File[];
       images?: Express.Multer.File[];
     },
-  ) {
+  ): Promise<CreateEventResponseDto> {
     return await this.eventsService.create(req.user.sub, createEventDto, files);
   }
 

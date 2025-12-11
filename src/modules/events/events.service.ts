@@ -1,20 +1,27 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 
-import { CreateEventDto } from './dto/create-event.dto';
+import { CreateEventDto } from './dto/request/create-event.dto';
 import { EventsRepository } from './events.repository';
 import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
 import { IStorageService } from '@/infra/storage';
 import { GeocoderService } from './providers';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
+import * as schema from '@/infra/database/orm/drizzle/schema';
+import { CreateEventResponseDto } from './dto';
 
 @Injectable()
 export class EventsService {
   constructor(
+    @Inject(DATABASE_TAG)
+    private readonly drizzle: PostgresJsDatabase<typeof schema>,
     private readonly eventsRepository: EventsRepository,
     private readonly eventsMapper: EventsMapper,
     private readonly categoriesService: CategoriesService,
@@ -31,13 +38,11 @@ export class EventsService {
       banner_image?: Express.Multer.File[];
       images?: Express.Multer.File[];
     },
-  ) {
-    // check if event category exists
+  ): Promise<CreateEventResponseDto> {
     await this.categoriesService.findOneElseThrow(
       createEventDto.event_category_id,
     );
 
-    // check if same name event exists
     const existentEvent = await this.eventsRepository.findByName(
       createEventDto.name,
     );
@@ -46,7 +51,6 @@ export class EventsService {
       throw new ConflictException('Event name already in use!');
     }
 
-    // check if end date is after start date
     const isStartsAtBeforeEndsAt = this.dateProvider.isAfter(
       createEventDto.starts_at,
       createEventDto.ends_at,
@@ -58,46 +62,70 @@ export class EventsService {
       );
     }
 
-    // create slug
     const slug = this.slugProvider.slugify(createEventDto.name);
 
-    // get latitude and longitude for location via address zipcode
     const geocodeResponse = await this.geocoderService.forwardGeocode({
       complement: createEventDto.address_number,
       street: createEventDto.address_street,
       city: createEventDto.address_city,
     });
 
-    // check if geocodeResponse address exists
+    if (!geocodeResponse) {
+      throw new BadRequestException('Invalid or non existent address!');
+    }
 
-    // upload banner image
     const bannerImageUrl = await this.storageService.upload(
       files.banner_image[0],
       `user_${user_id}/slug/banner`,
     );
 
-    // create event
-    const event = await this.eventsRepository.create({
-      ...createEventDto,
-      organizer_id: user_id,
-      banner_url: bannerImageUrl,
-      slug: slug,
-      location: { x: geocodeResponse.longitude, y: geocodeResponse.latitude },
-      starts_at: new Date(createEventDto.starts_at),
-      ends_at: new Date(createEventDto.ends_at),
+    const createdEvent = await this.drizzle.transaction(async (trx) => {
+      const result = await trx
+        .insert(schema.events)
+        .values({
+          ...createEventDto,
+          organizer_id: user_id,
+          banner_url: bannerImageUrl,
+          slug: slug,
+          location: {
+            x: geocodeResponse.longitude,
+            y: geocodeResponse.latitude,
+          },
+          starts_at: new Date(createEventDto.starts_at),
+          ends_at: new Date(createEventDto.ends_at),
+        })
+        .returning();
+
+      const event = result[0];
+
+      for (const image of files.images) {
+        const imageUrl = await this.storageService.upload(
+          image,
+          `user_${user_id}/event_${event.id}/images`,
+        );
+
+        await trx.insert(schema.event_images).values({
+          event_id: event.id,
+          url: imageUrl,
+          mimetype: image.mimetype,
+          name: image.originalname,
+          size: image.size,
+        });
+      }
+
+      await trx
+        .insert(schema.event_tickets)
+        .values(
+          this.eventsMapper.eventTicketDtoToCreateEventTicketData(
+            event.id,
+            createEventDto.event_tickets,
+          ),
+        );
+
+      return event;
     });
 
-    // upload event gallery images
-    await this.createEventImages(user_id, event.id, files.images);
-
-    // create event tickets
-    // treat price in cents
-    await this.eventsRepository.createEventTickets(
-      this.eventsMapper.eventTicketDtoToCreateEventTicketData(
-        event.id,
-        createEventDto.event_tickets,
-      ),
-    );
+    return createdEvent;
   }
 
   async createEventImages(

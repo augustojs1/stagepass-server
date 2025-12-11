@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { CreateEventTicketDto } from '../dto/create-event.dto';
+import { CreateEventTicketDto } from '../dto/request/create-event.dto';
 import { CreateEventTicketData } from '../models';
 
 @Injectable()
