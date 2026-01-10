@@ -7,6 +7,15 @@ import { IStorageService } from '../istorage.service.interface';
 export class DiskStorageService implements IStorageService {
   private readonly logger: Logger = new Logger(DiskStorageService.name);
 
+  async createPresignedUploadUrl(
+    key: string,
+    expiresIn: number,
+    contentType: string,
+    acl?: string,
+  ): Promise<string> {
+    return '';
+  }
+
   async upload(file: Express.Multer.File, dir: string): Promise<string> {
     const rootPath = path.resolve('./');
     const fullpath = path.join(rootPath, './.temp', dir);

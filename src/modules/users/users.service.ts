@@ -4,14 +4,14 @@ import { UsersRepository } from './users.repository';
 import { SignUpLocalDto } from '../auth/dtos';
 import { UserEntity } from './models';
 import { UserWithProfile } from './models/user-with-profile.model';
-import { IStorageService } from '@/infra/storage';
+import { AwsS3StorageService } from '@/infra/storage';
 import { UsersProfileEntity } from './models/users-profile-entity.model';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly storageService: IStorageService,
+    private readonly s3StorageService: AwsS3StorageService,
   ) {}
 
   async create(signUpLocalDto: SignUpLocalDto): Promise<UserWithProfile> {
@@ -66,13 +66,13 @@ export class UsersService {
     const user = await this.findWithProfileById(id);
 
     if (user.users_profile.avatar_url) {
-      this.storageService.remove(user.users_profile.avatar_url);
+      this.s3StorageService.remove(user.users_profile.avatar_url);
     }
 
-    const url = await this.storageService.upload(avatar_file, path);
-
-    await this.updateUserProfileById(id, {
-      avatar_url: url,
-    });
+    await this.s3StorageService.createPresignedUploadUrl(
+      `${path}/${avatar_file.originalname}`,
+      300,
+      avatar_file.mimetype,
+    );
   }
 }

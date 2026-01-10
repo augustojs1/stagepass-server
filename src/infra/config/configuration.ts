@@ -19,4 +19,12 @@ export const configuration = () => ({
     refresh_expiresInMs: process.env.JWT_REFRESH_EXPIRE_IN_MS,
   },
   geocoder_api_key: process.env.GEOCODER_PROVIDER_API_KEY,
+  r2: {
+    access_key: process.env.R2_ACCESS_KEY_ID,
+    secret_access_key: process.env.R2_SECRET_ACCESS_KEY_ID,
+    endpoint: process.env.R2_ENDPOINT,
+    region: process.env.R2_REGION,
+    bucket: process.env.R2_BUCKET,
+    public_url: process.env.R2_PUBLIC_URL,
+  },
 });
