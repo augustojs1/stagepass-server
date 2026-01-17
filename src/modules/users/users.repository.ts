@@ -8,6 +8,7 @@ import { SignUpLocalDto } from '../auth/dtos';
 import { UserEntity } from './models';
 import { UserWithProfile } from './models/user-with-profile.model';
 import { UsersUsersProfile } from './models/users-users-profile.model';
+import { UsersProfileEntity } from './models/users-profile-entity.model';
 
 @Injectable()
 export class UsersRepository {
@@ -94,7 +95,10 @@ export class UsersRepository {
       .where(eq(schema.users.id, user_id));
   }
 
-  async updateUserProfileById(user_id: string, userData: Partial<UserEntity>) {
+  async updateUserProfileById(
+    user_id: string,
+    userData: Partial<UsersProfileEntity>,
+  ) {
     await this.drizzle
       .update(schema.users_profile)
       .set(userData as any)

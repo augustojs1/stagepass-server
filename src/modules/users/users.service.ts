@@ -1,17 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { UsersRepository } from './users.repository';
 import { SignUpLocalDto } from '../auth/dtos';
 import { UserEntity } from './models';
 import { UserWithProfile } from './models/user-with-profile.model';
-import { AwsS3StorageService } from '@/infra/storage';
+import { R2StorageService } from '@/infra/storage';
 import { UsersProfileEntity } from './models/users-profile-entity.model';
+import { AvatarUploadPreSignDto, UpdateAvatarSuccessDto } from './dtos';
+import { PreSignedResponse } from '@/infra/storage/models';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly s3StorageService: AwsS3StorageService,
+    private readonly r2StorageService: R2StorageService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(signUpLocalDto: SignUpLocalDto): Promise<UserWithProfile> {
@@ -57,22 +61,41 @@ export class UsersService {
     await this.usersRepository.updateUserProfileById(id, userData);
   }
 
-  async uploadAvatar(
+  async createAvatarUploadPresignUrl(
     id: string,
-    avatar_file: Express.Multer.File,
-  ): Promise<void> {
+    avatarUploadPresignDto: AvatarUploadPreSignDto,
+  ): Promise<PreSignedResponse> {
     const path: string = `user_${id}/avatar`;
 
     const user = await this.findWithProfileById(id);
 
     if (user.users_profile.avatar_url) {
-      this.s3StorageService.remove(user.users_profile.avatar_url);
+      this.r2StorageService.remove(user.users_profile.avatar_url);
     }
 
-    await this.s3StorageService.createPresignedUploadUrl(
-      `${path}/${avatar_file.originalname}`,
+    return await this.r2StorageService.createPresignedUploadUrl(
+      `${path}/${avatarUploadPresignDto.filename}`,
       300,
-      avatar_file.mimetype,
+      avatarUploadPresignDto.mimetype,
     );
+  }
+
+  async updateAvatar(
+    id: string,
+    avatarKey: string,
+  ): Promise<UpdateAvatarSuccessDto> {
+    const publicUrl = this.configService.get<string>('r2.public_url');
+
+    const avatarUrl = `${publicUrl}/${avatarKey}`;
+
+    const user = await this.findWithProfileById(id);
+
+    await this.usersRepository.updateUserProfileById(user.user.id, {
+      avatar_url: avatarUrl,
+    });
+
+    return {
+      avatar_url: avatarUrl,
+    };
   }
 }

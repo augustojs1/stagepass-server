@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import { CreateEventDto } from './dto/request/create-event.dto';
 import { EventsRepository } from './events.repository';
@@ -12,7 +13,6 @@ import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
 import { IStorageService } from '@/infra/storage';
 import { GeocoderService } from './providers';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
 import { CreateEventResponseDto } from './dto';

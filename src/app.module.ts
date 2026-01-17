@@ -23,7 +23,6 @@ import { EventsModule } from './modules/events/events.module';
     CategoriesModule,
     EventsModule,
   ],
-  controllers: [],
   providers: [
     {
       provide: APP_INTERCEPTOR,

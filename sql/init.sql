@@ -36,21 +36,19 @@ create table categories (
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO
-	categories (name)
-VALUES 
-	('Music',
-	'Sport',
-	'Exhibition',
-	'Business',
-	'Photography',
-	'Theater',
-	'Comedy',
-	'Cinema',
-	'Education',
-	'Gaming',
-	'Festival'
-	);
+INSERT INTO event_categories (name)
+VALUES
+  ('Music'),
+  ('Sport'),
+  ('Exhibition'),
+  ('Business'),
+  ('Photography'),
+  ('Theater'),
+  ('Comedy'),
+  ('Cinema'),
+  ('Education'),
+  ('Gaming'),
+  ('Festival');
 
 create index event_categories_name_idx on event_categories (name);
 
@@ -66,7 +64,7 @@ create index countries_code_idx ON countries (code);
 create table events (
 	id UUID primary key default gen_random_uuid() NOT NULL,
 	organizer_id UUID references users (id) not NULL,
-	event_category_id UUID references categories (id) NOT NULL,
+	event_category_id UUID references event_categories (id) NOT NULL,
 	is_free BOOLEAN not null,
 	name VARCHAR(100) not NULL,
 	description text not NULL,
@@ -86,7 +84,7 @@ create table events (
 );
 
 alter table
-	events 
+	events
 add constraint
 	starts_at_before_ends_at
 check
@@ -369,7 +367,6 @@ INSERT INTO countries (name, code) VALUES
 ('Uruguay', 'UY'),
 ('Uzbekistan', 'UZ'),
 ('Vanuatu', 'VU'),
-('Vatican City', 'VA'),
 ('Venezuela', 'VE'),
 ('Vietnam', 'VN'),
 ('Virgin Islands (British)', 'VG'),
@@ -379,6 +376,3 @@ INSERT INTO countries (name, code) VALUES
 ('Yemen', 'YE'),
 ('Zambia', 'ZM'),
 ('Zimbabwe', 'ZW');
-
-
-

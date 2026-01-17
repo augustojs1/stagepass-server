@@ -4,7 +4,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import * as multer from 'multer';
 
 import { DrizzleModule } from '@/infra/database/orm/drizzle/drizzle.module';
-import { AwsS3StorageService } from '@/infra/storage';
+import { R2StorageService } from '@/infra/storage';
 import { UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
 import { UsersController } from './users.controller';
@@ -23,7 +23,7 @@ import { UsersMapper } from './mappers/users.mapper';
     UsersRepository,
     UsersMapper,
     JwtService,
-    AwsS3StorageService,
+    R2StorageService,
   ],
   exports: [UsersService, UsersMapper],
 })

@@ -11,8 +11,8 @@ import { ICloudStorageService } from '@/infra/storage';
 import { PreSignedResponse } from '@/infra/storage/models';
 
 @Injectable()
-export class AwsS3StorageService implements ICloudStorageService {
-  private readonly logger: Logger = new Logger(AwsS3StorageService.name);
+export class R2StorageService implements ICloudStorageService {
+  private readonly logger: Logger = new Logger(R2StorageService.name);
   private readonly s3Client: S3Client;
 
   constructor(private readonly configService: ConfigService) {
@@ -55,43 +55,12 @@ export class AwsS3StorageService implements ICloudStorageService {
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException(
-        'An error has occured while trying to upload an image',
-      );
-    }
-  }
-
-  async upload(file: Express.Multer.File, path: string): Promise<string> {
-    this.logger.log(`Init S3 upload to path ${path}`);
-
-    const bucket = this.configService.get<string>('aws.s3_bucket')!;
-    const key = `${path}/${file.originalname}`;
-
-    try {
-      await this.s3Client.send(
-        new PutObjectCommand({
-          Bucket: bucket,
-          Key: key,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-          ContentDisposition: 'inline',
-        }),
-      );
-
-      this.logger.log(`Successfully uploaded to S3 ${key}!`);
-
-      const publicBaseUrl = this.configService.get<string>(
-        'aws.public_base_url',
-      );
-      return publicBaseUrl ? `${publicBaseUrl}/${key}` : key;
-    } catch (error) {
-      this.logger.error(`Upload error: ${error}`);
-      throw new InternalServerErrorException(
-        'An error occurred while uploading an image',
+        `An error has occured while trying to generate pre-signed URL for ${key}`,
       );
     }
   }
 
   async remove(key: string): Promise<void> {
-    console.log('Remove file');
+    console.log(`Remove file ${key}`);
   }
 }

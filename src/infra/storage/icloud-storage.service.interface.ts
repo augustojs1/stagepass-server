@@ -6,6 +6,5 @@ export abstract class ICloudStorageService {
     expiresIn: number,
     contentType: string,
   ): Promise<PreSignedResponse>;
-  abstract upload(file: Express.Multer.File, path: string): Promise<string>;
   abstract remove(key: string): Promise<void>;
 }
