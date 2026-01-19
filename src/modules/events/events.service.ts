@@ -3,7 +3,10 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
+  NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import { CreateEventDto } from './dto/request/create-event.dto';
@@ -11,14 +14,22 @@ import { EventsRepository } from './events.repository';
 import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
-import { IStorageService } from '@/infra/storage';
+import { IStorageService, R2StorageService } from '@/infra/storage';
 import { GeocoderService } from './providers';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
-import { CreateEventResponseDto } from './dto';
+import {
+  BannerImageUploadPresignDto,
+  BannerUpdateResponseDto,
+  CreateEventResponseDto,
+} from './dto';
+import { PreSignedResponse } from '@/infra/storage/models';
+import { EventsEntity } from './models';
 
 @Injectable()
 export class EventsService {
+  private readonly logger: Logger = new Logger(EventsService.name);
+
   constructor(
     @Inject(DATABASE_TAG)
     private readonly drizzle: PostgresJsDatabase<typeof schema>,
@@ -29,6 +40,8 @@ export class EventsService {
     private readonly dateProvider: DateProvider,
     private readonly storageService: IStorageService,
     private readonly geocoderService: GeocoderService,
+    private readonly r2StorageService: R2StorageService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(
@@ -153,7 +166,56 @@ export class EventsService {
     return `This action returns all events`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} event`;
+  async findOneElseThrow(id: string): Promise<EventsEntity> {
+    const event = await this.eventsRepository.findById(id);
+
+    if (!event) {
+      throw new NotFoundException('Event with this Id does not exists!');
+    }
+
+    return event;
+  }
+
+  async createBannerUploadPresignUrl(
+    id: string,
+    user_id: string,
+    bannerImagePreSignDto: BannerImageUploadPresignDto,
+  ): Promise<PreSignedResponse> {
+    const event = await this.findOneElseThrow(id);
+
+    const path: string = `user_${user_id}/event_${event.id}`;
+
+    const response = await this.r2StorageService.createPresignedUploadUrl(
+      `${path}/${bannerImagePreSignDto.filename}`,
+      300,
+      bannerImagePreSignDto.mimetype,
+    );
+
+    this.logger.log(
+      `Successfully generated pre-sign URL for banner ${event.id} upload!`,
+    );
+
+    return response;
+  }
+
+  async updateBanner(
+    id: string,
+    bannerImageKey: string,
+  ): Promise<BannerUpdateResponseDto> {
+    const publicUrl = this.configService.get<string>('r2.public_url');
+
+    const bannerUrl = `${publicUrl}/${bannerImageKey}`;
+
+    const event = await this.findOneElseThrow(id);
+
+    await this.eventsRepository.update(event.id, {
+      banner_url: bannerUrl,
+    });
+
+    this.logger.log(`Successfully updated banner URL for event ${event.id}!`);
+
+    return {
+      banner_url: bannerUrl,
+    };
   }
 }

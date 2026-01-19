@@ -8,6 +8,7 @@ import {
   Req,
   UseInterceptors,
   UploadedFiles,
+  Patch,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
@@ -18,7 +19,13 @@ import {
 } from './dto/request/create-event.dto';
 import { MultiFileValidationPipe, ZodValidationPipe } from '../shared/pipes';
 import { JwtAuthGuard } from '../auth/guards';
-import { CreateEventResponseDto } from './dto';
+import {
+  BannerImageUploadPresignDto,
+  BannerrUploadDto,
+  BannerUpdateResponseDto,
+  CreateEventResponseDto,
+} from './dto';
+import { PreSignedResponse } from '@/infra/storage/models';
 
 @Controller('events')
 export class EventsController {
@@ -55,8 +62,29 @@ export class EventsController {
     return this.eventsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @Post('/:id/banner/pre-sign')
+  async createEventBannerPresign(
+    @Req() req,
+    @Param('id') id: string,
+    @Body() bannerImagePreSignDto: BannerImageUploadPresignDto,
+  ): Promise<PreSignedResponse> {
+    return await this.eventsService.createBannerUploadPresignUrl(
+      id,
+      req.user.sub,
+      bannerImagePreSignDto,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/:id/banner')
+  async updateEventBanner(
+    @Param('id') id: string,
+    @Body() bannerUploadDto: BannerrUploadDto,
+  ): Promise<BannerUpdateResponseDto> {
+    return await this.eventsService.updateBanner(
+      id,
+      bannerUploadDto.banner_key,
+    );
   }
 }

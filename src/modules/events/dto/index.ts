@@ -1,2 +1,5 @@
 export * from './request/create-event.dto';
 export * from './response/create-event-response.dto';
+export * from './request/banner-image-pre-sign.dto';
+export * from './request/banner-upload.dto';
+export * from './response/banner-update-response.dto';

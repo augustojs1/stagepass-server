@@ -68,7 +68,7 @@ create table events (
 	is_free BOOLEAN not null,
 	name VARCHAR(100) not NULL,
 	description text not NULL,
-	banner_url text not null,
+	banner_url text,
 	slug TEXT NOT NULL,
 	address_street VARCHAR(100) not null,
 	address_number VARCHAR(20) not null,

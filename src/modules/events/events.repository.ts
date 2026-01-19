@@ -34,6 +34,15 @@ export class EventsRepository {
     await this.drizzle.insert(schema.event_tickets).values(data);
   }
 
+  async findById(id: string): Promise<EventsEntity | null> {
+    const events = await this.drizzle
+      .select()
+      .from(schema.events)
+      .where(eq(schema.events.id, id));
+
+    return events[0];
+  }
+
   async findByName(name: string): Promise<EventsEntity | null> {
     const events = await this.drizzle
       .select()
@@ -50,6 +59,15 @@ export class EventsRepository {
       .where(eq(schema.events.slug, slug));
 
     return events[0];
+  }
+
+  async update(id: string, data: Partial<EventsEntity>): Promise<void> {
+    await this.drizzle
+      .update(schema.events)
+      .set({
+        ...data,
+      })
+      .where(eq(schema.events.id, id));
   }
 
   async createEventImage(

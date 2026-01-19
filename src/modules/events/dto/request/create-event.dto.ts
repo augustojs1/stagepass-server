@@ -8,10 +8,18 @@ export const eventTicketDto = z
   })
   .strict();
 
+export const galleryImagesDto = z
+  .object({
+    image_key: z.string().min(1),
+    mimetype: z.string().min(1),
+    size: z.number(),
+  })
+  .strict();
+
 export const createEventDtoSchema = z
   .object({
-    event_category_id: z.uuidv4().min(1),
     name: z.string().min(1).max(50),
+    event_category_id: z.uuidv4().min(1),
     description: z.string().min(1).max(500),
     is_free: z.coerce.boolean(),
     address_street: z.string().min(1).max(30),
@@ -26,5 +34,6 @@ export const createEventDtoSchema = z
   })
   .strict();
 
-export type CreateEventDto = z.infer<typeof createEventDtoSchema>;
 export type CreateEventTicketDto = z.infer<typeof eventTicketDto>;
+export type CreateEventDto = z.infer<typeof createEventDtoSchema>;
+export type EventGalleryImagesDto = z.infer<typeof galleryImagesDto>;

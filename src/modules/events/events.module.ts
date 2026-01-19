@@ -8,7 +8,11 @@ import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesModule } from '../categories/categories.module';
 import { SlugProvider } from '../shared/providers';
 import { DateProvider } from '../shared/providers/date.provider';
-import { DiskStorageService, IStorageService } from '@/infra/storage';
+import {
+  DiskStorageService,
+  IStorageService,
+  R2StorageService,
+} from '@/infra/storage';
 import { GeocoderService } from './providers';
 
 @Module({
@@ -25,6 +29,7 @@ import { GeocoderService } from './providers';
       provide: IStorageService,
       useClass: DiskStorageService,
     },
+    R2StorageService,
   ],
   imports: [CategoriesModule],
 })
