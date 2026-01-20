@@ -22,9 +22,11 @@ import {
   BannerImageUploadPresignDto,
   BannerUpdateResponseDto,
   CreateEventResponseDto,
+  GalleryImagesPresignDto,
 } from './dto';
 import { PreSignedResponse } from '@/infra/storage/models';
 import { EventsEntity } from './models';
+import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
 
 @Injectable()
 export class EventsService {
@@ -217,5 +219,37 @@ export class EventsService {
     return {
       banner_url: bannerUrl,
     };
+  }
+
+  async createGalleryImagesUploadPresignUrl(
+    id: string,
+    user_id: string,
+    galleryImagesPresignDto: GalleryImagesPresignDto,
+  ): Promise<GalleryImagesPresignUrlsResponse> {
+    const presignUrls: Array<PreSignedResponse> = [];
+
+    const event = await this.findOneElseThrow(id);
+
+    const path: string = `user_${user_id}/event_${event.id}`;
+
+    for (const image of galleryImagesPresignDto.gallery_images) {
+      const response = await this.r2StorageService.createPresignedUploadUrl(
+        `${path}/${image.filename}`,
+        800,
+        image.mimetype,
+      );
+
+      presignUrls.push(response);
+    }
+
+    const galleryImagesPresignUrlsResponse: GalleryImagesPresignUrlsResponse = {
+      gallery_images_urls: presignUrls,
+    };
+
+    this.logger.log(
+      `Successfully generated pre-sign URL for banner ${event.id} upload!`,
+    );
+
+    return galleryImagesPresignUrlsResponse;
   }
 }

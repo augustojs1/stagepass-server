@@ -24,8 +24,10 @@ import {
   BannerrUploadDto,
   BannerUpdateResponseDto,
   CreateEventResponseDto,
+  GalleryImagesPresignDto,
 } from './dto';
 import { PreSignedResponse } from '@/infra/storage/models';
+import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
 
 @Controller('events')
 export class EventsController {
@@ -87,4 +89,22 @@ export class EventsController {
       bannerUploadDto.banner_key,
     );
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/:id/gallery-images/pre-sign')
+  async createEventGalleryImagesPresign(
+    @Req() req,
+    @Param('id') id: string,
+    @Body() galleryImagesPresignDto: GalleryImagesPresignDto,
+  ): Promise<GalleryImagesPresignUrlsResponse> {
+    return await this.eventsService.createGalleryImagesUploadPresignUrl(
+      id,
+      req.user.sub,
+      galleryImagesPresignDto,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/:id/gallery-images')
+  async updateGalleryImages() {}
 }
