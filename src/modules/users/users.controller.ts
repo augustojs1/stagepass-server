@@ -14,10 +14,13 @@ import { UsersMapper } from './mappers/users.mapper';
 import { UserWithProfile } from './models/user-with-profile.model';
 import {
   AvatarUploadDto,
+  avatarUploadDtoSchema,
   AvatarUploadPreSignDto,
   UpdateAvatarSuccessDto,
 } from './dtos';
 import { PreSignedResponse } from '@/infra/storage/models';
+import { uploadPresignPayloadSchema } from '@/infra/storage/models/upload-pre-sign-payload';
+import { ZodValidationPipe } from '../shared/pipes';
 
 @Controller('users')
 export class UsersController {
@@ -38,7 +41,8 @@ export class UsersController {
   @Post('/me/avatar/pre-sign')
   async uploadAvatarPreSign(
     @Req() req,
-    @Body() uploadAvatarPresignDto: AvatarUploadPreSignDto,
+    @Body(new ZodValidationPipe(uploadPresignPayloadSchema))
+    uploadAvatarPresignDto: AvatarUploadPreSignDto,
   ): Promise<PreSignedResponse> {
     return await this.usersService.createAvatarUploadPresignUrl(
       req.user.sub,
@@ -50,7 +54,8 @@ export class UsersController {
   @Patch('/me/avatar')
   async uploadAvatar(
     @Req() req,
-    @Body() avatarUploadDto: AvatarUploadDto,
+    @Body(new ZodValidationPipe(avatarUploadDtoSchema))
+    avatarUploadDto: AvatarUploadDto,
   ): Promise<UpdateAvatarSuccessDto> {
     return await this.usersService.updateAvatar(
       req.user.sub,

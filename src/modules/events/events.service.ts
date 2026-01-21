@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   Logger,
@@ -23,9 +24,10 @@ import {
   BannerUpdateResponseDto,
   CreateEventResponseDto,
   GalleryImagesPresignDto,
+  UpdateEventImagesDto,
 } from './dto';
 import { PreSignedResponse } from '@/infra/storage/models';
-import { EventsEntity } from './models';
+import { CreateEventImageData, EventsEntity } from './models';
 import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
 
 @Injectable()
@@ -113,20 +115,20 @@ export class EventsService {
 
       const event = result[0];
 
-      for (const image of files.images) {
-        const imageUrl = await this.storageService.upload(
-          image,
-          `user_${user_id}/event_${event.id}/images`,
-        );
+      // for (const image of files.images) {
+      //   const imageUrl = await this.storageService.upload(
+      //     image,
+      //     `user_${user_id}/event_${event.id}/images`,
+      //   );
 
-        await trx.insert(schema.event_images).values({
-          event_id: event.id,
-          url: imageUrl,
-          mimetype: image.mimetype,
-          name: image.originalname,
-          size: image.size,
-        });
-      }
+      //   await trx.insert(schema.event_images).values({
+      //     event_id: event.id,
+      //     url: imageUrl,
+      //     mimetype: image.mimetype,
+      //     name: image.originalname,
+      //     size: image.size,
+      //   });
+      // }
 
       await trx
         .insert(schema.event_tickets)
@@ -143,31 +145,6 @@ export class EventsService {
     return createdEvent;
   }
 
-  async createEventImages(
-    user_id: string,
-    event_id: string,
-    event_images: Express.Multer.File[],
-  ): Promise<void> {
-    for (const image of event_images) {
-      const imageUrl = await this.storageService.upload(
-        image,
-        `user_${user_id}/event_${event_id}/images`,
-      );
-
-      await this.eventsRepository.createEventImage({
-        event_id: event_id,
-        url: imageUrl,
-        mimetype: image.mimetype,
-        name: image.originalname,
-        size: image.size,
-      });
-    }
-  }
-
-  findAll() {
-    return `This action returns all events`;
-  }
-
   async findOneElseThrow(id: string): Promise<EventsEntity> {
     const event = await this.eventsRepository.findById(id);
 
@@ -178,12 +155,20 @@ export class EventsService {
     return event;
   }
 
+  checkIfUserIsEventOrganizerElseThrow(id: string, user_id: string): void {
+    if (id !== user_id) {
+      throw new ForbiddenException('User is not the organizer of this event!');
+    }
+  }
+
   async createBannerUploadPresignUrl(
     id: string,
     user_id: string,
     bannerImagePreSignDto: BannerImageUploadPresignDto,
   ): Promise<PreSignedResponse> {
     const event = await this.findOneElseThrow(id);
+
+    this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
 
     const path: string = `user_${user_id}/event_${event.id}`;
 
@@ -202,13 +187,16 @@ export class EventsService {
 
   async updateBanner(
     id: string,
+    user_id: string,
     bannerImageKey: string,
   ): Promise<BannerUpdateResponseDto> {
+    const event = await this.findOneElseThrow(id);
+
+    this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
+
     const publicUrl = this.configService.get<string>('r2.public_url');
 
     const bannerUrl = `${publicUrl}/${bannerImageKey}`;
-
-    const event = await this.findOneElseThrow(id);
 
     await this.eventsRepository.update(event.id, {
       banner_url: bannerUrl,
@@ -230,12 +218,14 @@ export class EventsService {
 
     const event = await this.findOneElseThrow(id);
 
+    this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
+
     const path: string = `user_${user_id}/event_${event.id}`;
 
     for (const image of galleryImagesPresignDto.gallery_images) {
       const response = await this.r2StorageService.createPresignedUploadUrl(
         `${path}/${image.filename}`,
-        800,
+        1_000,
         image.mimetype,
       );
 
@@ -251,5 +241,35 @@ export class EventsService {
     );
 
     return galleryImagesPresignUrlsResponse;
+  }
+
+  async createEventImagesGallery(
+    id: string,
+    user_id: string,
+    updateEventImagesDto: UpdateEventImagesDto,
+  ): Promise<void> {
+    const event = await this.findOneElseThrow(id);
+
+    this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
+
+    const publicUrl = this.configService.get<string>('r2.public_url');
+
+    const createEventImageData: Array<CreateEventImageData> = [];
+
+    for (const key of updateEventImagesDto.event_images_key) {
+      await this.r2StorageService.assertObjectExists(key);
+
+      const eventImageUrl = `${publicUrl}/${key}`;
+
+      createEventImageData.push({
+        event_id: event.id,
+        object_key: key,
+        url: eventImageUrl,
+      });
+    }
+
+    await this.eventsRepository.createEventImage(createEventImageData);
+
+    this.logger.log(`Successfully added gallery images for event ${event.id}!`);
   }
 }

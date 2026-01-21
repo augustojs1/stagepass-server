@@ -10,7 +10,6 @@ import {
   CreateEventTicketData,
   EventsEntity,
 } from './models';
-import { EventImageEntity } from './models/event-image-entity.model';
 
 @Injectable()
 export class EventsRepository {
@@ -71,10 +70,8 @@ export class EventsRepository {
   }
 
   async createEventImage(
-    createEventImageData: CreateEventImageData,
+    createEventImageData: CreateEventImageData[],
   ): Promise<void> {
-    await this.drizzle.insert(schema.event_images).values({
-      ...createEventImageData,
-    } as EventImageEntity);
+    await this.drizzle.insert(schema.event_images).values(createEventImageData);
   }
 }

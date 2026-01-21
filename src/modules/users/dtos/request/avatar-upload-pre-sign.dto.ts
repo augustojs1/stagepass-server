@@ -1,5 +1,5 @@
 import { z } from 'zod';
 
-import { uploadPresignPayload } from '@/infra/storage/models/upload-pre-sign-payload';
+import { uploadPresignPayloadSchema } from '@/infra/storage/models/upload-pre-sign-payload';
 
-export type AvatarUploadPreSignDto = z.infer<typeof uploadPresignPayload>;
+export type AvatarUploadPreSignDto = z.infer<typeof uploadPresignPayloadSchema>;

@@ -115,15 +115,15 @@ check
 
 -- event_images
 CREATE TABLE event_images (
-	id UUID primary key default gen_random_uuid(),
-	event_id UUID references events (id) not null,
-	name TEXT NOT NULL,
-	url TEXT NOT NUll,
-	mimetype VARCHAR(20) NOT NULL,
-	size INT NOT NULL,
-	updated_at TIMESTAMPTZ default CURRENT_TIMESTAMP,
-	created_at TIMESTAMPTZ default CURRENT_TIMESTAMP
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id UUID REFERENCES events(id) NOT NULL,
+  object_key TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_event_images_event_id ON event_images(event_id);
+CREATE UNIQUE INDEX uq_event_images_event_key ON event_images(event_id, object_key);
 
 -- countries seed
 INSERT INTO countries (name, code) VALUES

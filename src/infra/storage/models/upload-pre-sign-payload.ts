@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const uploadPresignPayload = z
+export const uploadPresignPayloadSchema = z
   .object({
     filename: z.string().min(1).max(50),
     mimetype: z.string().min(1).max(30),
@@ -8,4 +8,4 @@ export const uploadPresignPayload = z
   })
   .required();
 
-export type UploadPresignPayload = z.infer<typeof uploadPresignPayload>;
+export type UploadPresignPayload = z.infer<typeof uploadPresignPayloadSchema>;

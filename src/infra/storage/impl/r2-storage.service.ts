@@ -2,9 +2,14 @@ import {
   Injectable,
   Logger,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  PutObjectCommand,
+  S3Client,
+  HeadObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { ICloudStorageService } from '@/infra/storage';
@@ -14,6 +19,7 @@ import { PreSignedResponse } from '@/infra/storage/models';
 export class R2StorageService implements ICloudStorageService {
   private readonly logger: Logger = new Logger(R2StorageService.name);
   private readonly s3Client: S3Client;
+  private bucket: string;
 
   constructor(private readonly configService: ConfigService) {
     this.s3Client = new S3Client({
@@ -25,6 +31,8 @@ export class R2StorageService implements ICloudStorageService {
       region: this.configService.get<string>('r2.region'),
       forcePathStyle: true,
     });
+
+    this.bucket = this.configService.get<string>('r2.bucket');
   }
 
   async createPresignedUploadUrl(
@@ -33,10 +41,8 @@ export class R2StorageService implements ICloudStorageService {
     contentType: string,
   ): Promise<PreSignedResponse> {
     try {
-      const bucket = this.configService.get<string>('r2.bucket');
-
       const command = new PutObjectCommand({
-        Bucket: bucket,
+        Bucket: this.bucket,
         Key: key,
         ContentType: contentType,
       });
@@ -56,6 +62,27 @@ export class R2StorageService implements ICloudStorageService {
       this.logger.error(error);
       throw new InternalServerErrorException(
         `An error has occured while trying to generate pre-signed URL for ${key}`,
+      );
+    }
+  }
+
+  async assertObjectExists(key: string): Promise<void> {
+    try {
+      await this.s3Client.send(
+        new HeadObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+        }),
+      );
+    } catch (err: any) {
+      const status = err?.$metadata?.httpStatusCode;
+
+      if (err?.name === 'NotFound' || status === 404) {
+        throw new BadRequestException(`File not found in storage: ${key}`);
+      }
+
+      throw new InternalServerErrorException(
+        `Failed to verify file in storage: ${key}`,
       );
     }
   }

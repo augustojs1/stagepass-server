@@ -1,6 +1,5 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Param,
@@ -9,6 +8,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   Patch,
+  UsePipes,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
@@ -23,11 +23,16 @@ import {
   BannerImageUploadPresignDto,
   BannerrUploadDto,
   BannerUpdateResponseDto,
+  bannerUploadDtoSchema,
   CreateEventResponseDto,
   GalleryImagesPresignDto,
+  galleryImagesPresignDtoSchema,
+  updateEventImagesDto,
+  UpdateEventImagesDto,
 } from './dto';
 import { PreSignedResponse } from '@/infra/storage/models';
 import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
+import { uploadPresignPayloadSchema } from '@/infra/storage/models/upload-pre-sign-payload';
 
 @Controller('events')
 export class EventsController {
@@ -59,17 +64,13 @@ export class EventsController {
     return await this.eventsService.create(req.user.sub, createEventDto, files);
   }
 
-  @Get()
-  findAll() {
-    return this.eventsService.findAll();
-  }
-
   @UseGuards(JwtAuthGuard)
   @Post('/:id/banner/pre-sign')
   async createEventBannerPresign(
     @Req() req,
     @Param('id') id: string,
-    @Body() bannerImagePreSignDto: BannerImageUploadPresignDto,
+    @Body(new ZodValidationPipe(uploadPresignPayloadSchema))
+    bannerImagePreSignDto: BannerImageUploadPresignDto,
   ): Promise<PreSignedResponse> {
     return await this.eventsService.createBannerUploadPresignUrl(
       id,
@@ -81,11 +82,14 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @Patch('/:id/banner')
   async updateEventBanner(
+    @Req() req,
     @Param('id') id: string,
-    @Body() bannerUploadDto: BannerrUploadDto,
+    @Body(new ZodValidationPipe(bannerUploadDtoSchema))
+    bannerUploadDto: BannerrUploadDto,
   ): Promise<BannerUpdateResponseDto> {
     return await this.eventsService.updateBanner(
       id,
+      req.user.sub,
       bannerUploadDto.banner_key,
     );
   }
@@ -95,7 +99,8 @@ export class EventsController {
   async createEventGalleryImagesPresign(
     @Req() req,
     @Param('id') id: string,
-    @Body() galleryImagesPresignDto: GalleryImagesPresignDto,
+    @Body(new ZodValidationPipe(galleryImagesPresignDtoSchema))
+    galleryImagesPresignDto: GalleryImagesPresignDto,
   ): Promise<GalleryImagesPresignUrlsResponse> {
     return await this.eventsService.createGalleryImagesUploadPresignUrl(
       id,
@@ -105,6 +110,18 @@ export class EventsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('/:id/gallery-images')
-  async updateGalleryImages() {}
+  @Post('/:id/gallery-images')
+  @UsePipes()
+  async updateGalleryImages(
+    @Req() req,
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateEventImagesDto))
+    updateEventImagesDto: UpdateEventImagesDto,
+  ): Promise<void> {
+    return await this.eventsService.createEventImagesGallery(
+      id,
+      req.user.sub,
+      updateEventImagesDto,
+    );
+  }
 }

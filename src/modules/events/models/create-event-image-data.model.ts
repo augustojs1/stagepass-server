@@ -1,7 +1,5 @@
 export class CreateEventImageData {
   event_id: string;
-  name: string;
+  object_key: string;
   url: string;
-  mimetype: string;
-  size: number;
 }

@@ -5,3 +5,4 @@ export * from './request/banner-upload.dto';
 export * from './response/banner-update-response.dto';
 export * from './request/gallery-images-pre-sign.dto';
 export * from './request/gallery-images-pre-sign.dto';
+export * from './request/update-event-images.dto';
