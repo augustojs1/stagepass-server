@@ -31,7 +31,7 @@ export class AppExceptionFilter implements ExceptionFilter {
       });
     }
 
-    console.log(exception);
+    this.logger.error(exception);
 
     if (exception?.code && exception?.sqlMessage) {
       this.logger.error({

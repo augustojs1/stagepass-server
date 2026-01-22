@@ -194,6 +194,8 @@ export class EventsService {
 
     this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
 
+    await this.r2StorageService.getObject(bannerImageKey);
+
     const publicUrl = this.configService.get<string>('r2.public_url');
 
     const bannerUrl = `${publicUrl}/${bannerImageKey}`;
@@ -237,7 +239,7 @@ export class EventsService {
     };
 
     this.logger.log(
-      `Successfully generated pre-sign URL for banner ${event.id} upload!`,
+      `Successfully generated pre-sign URL for event ${event.id} gallery images upload!`,
     );
 
     return galleryImagesPresignUrlsResponse;
@@ -256,17 +258,16 @@ export class EventsService {
 
     const createEventImageData: Array<CreateEventImageData> = [];
 
-    for (const key of updateEventImagesDto.event_images_key) {
-      await this.r2StorageService.assertObjectExists(key);
-
-      const eventImageUrl = `${publicUrl}/${key}`;
-
-      createEventImageData.push({
-        event_id: event.id,
-        object_key: key,
-        url: eventImageUrl,
-      });
-    }
+    await Promise.all(
+      updateEventImagesDto.event_images_key.map(async (key) => {
+        await this.r2StorageService.getObject(key);
+        createEventImageData.push({
+          event_id: event.id,
+          object_key: key,
+          url: `${publicUrl}/${key}`,
+        });
+      }),
+    );
 
     await this.eventsRepository.createEventImage(createEventImageData);
 

@@ -70,7 +70,7 @@ export class UsersService {
     const user = await this.findWithProfileById(id);
 
     if (user.users_profile.avatar_url) {
-      this.r2StorageService.remove(user.users_profile.avatar_url);
+      this.r2StorageService.removeObject(user.users_profile.avatar_url);
     }
 
     return await this.r2StorageService.createPresignedUploadUrl(
@@ -84,6 +84,8 @@ export class UsersService {
     id: string,
     avatarKey: string,
   ): Promise<UpdateAvatarSuccessDto> {
+    await this.r2StorageService.getObject(avatarKey);
+
     const publicUrl = this.configService.get<string>('r2.public_url');
 
     const avatarUrl = `${publicUrl}/${avatarKey}`;
