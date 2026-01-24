@@ -15,7 +15,7 @@ import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
 import { IStorageService, R2StorageService } from '@/infra/storage';
-import { EventsStoragePathProvider, GeocoderService } from './providers';
+import { EventsStoragePathProvider } from './providers';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
 import {
@@ -28,6 +28,7 @@ import {
 import { PreSignedResponse } from '@/infra/storage/models';
 import { CreateEventImageData, EventsEntity } from './models';
 import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
+import { AddressService } from '../address/address.service';
 
 @Injectable()
 export class EventsService {
@@ -42,7 +43,7 @@ export class EventsService {
     private readonly slugProvider: SlugProvider,
     private readonly dateProvider: DateProvider,
     private readonly storageService: IStorageService,
-    private readonly geocoderService: GeocoderService,
+    private readonly addressService: AddressService,
     private readonly r2StorageService: R2StorageService,
     private readonly eventsStoragePathProvider: EventsStoragePathProvider,
   ) {}
@@ -80,15 +81,11 @@ export class EventsService {
 
     const slug = this.slugProvider.slugify(createEventDto.name);
 
-    const geocodeResponse = await this.geocoderService.forwardGeocode({
+    const geocodeResponse = await this.addressService.findPreviewAddress({
       complement: createEventDto.address_number,
       street: createEventDto.address_street,
       city: createEventDto.address_city,
     });
-
-    if (!geocodeResponse) {
-      throw new BadRequestException('Invalid or non existent address!');
-    }
 
     const bannerImageUrl = await this.storageService.upload(
       files.banner_image[0],

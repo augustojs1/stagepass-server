@@ -9,6 +9,7 @@ import { UsersModule } from '@/modules/users/users.module';
 import { HttpRequestInterceptor } from '@/infra/interceptors';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { EventsModule } from './modules/events/events.module';
+import { AddressModule } from './modules/address/address.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { EventsModule } from './modules/events/events.module';
     UsersModule,
     CategoriesModule,
     EventsModule,
+    AddressModule,
   ],
   providers: [
     {

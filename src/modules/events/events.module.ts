@@ -13,7 +13,8 @@ import {
   IStorageService,
   R2StorageService,
 } from '@/infra/storage';
-import { EventsStoragePathProvider, GeocoderService } from './providers';
+import { EventsStoragePathProvider } from './providers';
+import { AddressModule } from '../address/address.module';
 
 @Module({
   controllers: [EventsController],
@@ -24,7 +25,6 @@ import { EventsStoragePathProvider, GeocoderService } from './providers';
     JwtService,
     SlugProvider,
     DateProvider,
-    GeocoderService,
     {
       provide: IStorageService,
       useClass: DiskStorageService,
@@ -32,6 +32,6 @@ import { EventsStoragePathProvider, GeocoderService } from './providers';
     R2StorageService,
     EventsStoragePathProvider,
   ],
-  imports: [CategoriesModule],
+  imports: [CategoriesModule, AddressModule],
 })
 export class EventsModule {}

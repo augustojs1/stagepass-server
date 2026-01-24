@@ -2,10 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as NodeGeocoder from 'node-geocoder';
 
-import { ForwardGeocoderData, ForwardGeocoderResponse } from '../models';
+import {
+  ForwardGeocoderData,
+  ForwardGeocoderResponse,
+} from '../../events/models';
 
 @Injectable()
-export class GeocoderService {
+export class GeocoderProvider {
   private readonly geocoder: NodeGeocoder.Geocoder;
 
   constructor(private readonly configService: ConfigService) {
