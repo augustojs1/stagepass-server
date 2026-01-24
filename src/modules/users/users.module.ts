@@ -9,6 +9,7 @@ import { UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
 import { UsersController } from './users.controller';
 import { UsersMapper } from './mappers/users.mapper';
+import { UserStoragePathProvider } from './providers';
 
 @Module({
   controllers: [UsersController],
@@ -24,6 +25,7 @@ import { UsersMapper } from './mappers/users.mapper';
     UsersMapper,
     JwtService,
     R2StorageService,
+    UserStoragePathProvider,
   ],
   exports: [UsersService, UsersMapper],
 })

@@ -29,7 +29,7 @@ export class EventsRepository {
     return events[0];
   }
 
-  async createEventTickets(data: CreateEventTicketData[]) {
+  async createEventTickets(data: CreateEventTicketData[]): Promise<void> {
     await this.drizzle.insert(schema.event_tickets).values(data);
   }
 

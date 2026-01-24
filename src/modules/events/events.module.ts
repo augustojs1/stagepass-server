@@ -13,7 +13,7 @@ import {
   IStorageService,
   R2StorageService,
 } from '@/infra/storage';
-import { GeocoderService } from './providers';
+import { EventsStoragePathProvider, GeocoderService } from './providers';
 
 @Module({
   controllers: [EventsController],
@@ -30,6 +30,7 @@ import { GeocoderService } from './providers';
       useClass: DiskStorageService,
     },
     R2StorageService,
+    EventsStoragePathProvider,
   ],
   imports: [CategoriesModule],
 })

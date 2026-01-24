@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 import { UsersRepository } from './users.repository';
 import { SignUpLocalDto } from '../auth/dtos';
@@ -9,13 +8,14 @@ import { R2StorageService } from '@/infra/storage';
 import { UsersProfileEntity } from './models/users-profile-entity.model';
 import { AvatarUploadPreSignDto, UpdateAvatarSuccessDto } from './dtos';
 import { PreSignedResponse } from '@/infra/storage/models';
+import { UserStoragePathProvider } from './providers';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly r2StorageService: R2StorageService,
-    private readonly configService: ConfigService,
+    private readonly userStoragePathProvider: UserStoragePathProvider,
   ) {}
 
   async create(signUpLocalDto: SignUpLocalDto): Promise<UserWithProfile> {
@@ -65,7 +65,7 @@ export class UsersService {
     id: string,
     avatarUploadPresignDto: AvatarUploadPreSignDto,
   ): Promise<PreSignedResponse> {
-    const path: string = `user_${id}/avatar`;
+    const path: string = this.userStoragePathProvider.generateAvatarUrl(id);
 
     const user = await this.findWithProfileById(id);
 
@@ -86,9 +86,7 @@ export class UsersService {
   ): Promise<UpdateAvatarSuccessDto> {
     await this.r2StorageService.getObject(avatarKey);
 
-    const publicUrl = this.configService.get<string>('r2.public_url');
-
-    const avatarUrl = `${publicUrl}/${avatarKey}`;
+    const avatarUrl = this.userStoragePathProvider.generateAvatarUrl(avatarKey);
 
     const user = await this.findWithProfileById(id);
 

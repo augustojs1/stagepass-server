@@ -7,7 +7,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import { CreateEventDto } from './dto/request/create-event.dto';
@@ -16,7 +15,7 @@ import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
 import { IStorageService, R2StorageService } from '@/infra/storage';
-import { GeocoderService } from './providers';
+import { EventsStoragePathProvider, GeocoderService } from './providers';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
 import {
@@ -45,7 +44,7 @@ export class EventsService {
     private readonly storageService: IStorageService,
     private readonly geocoderService: GeocoderService,
     private readonly r2StorageService: R2StorageService,
-    private readonly configService: ConfigService,
+    private readonly eventsStoragePathProvider: EventsStoragePathProvider,
   ) {}
 
   async create(
@@ -170,10 +169,14 @@ export class EventsService {
 
     this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
 
-    const path: string = `user_${user_id}/event_${event.id}`;
+    const key: string = this.eventsStoragePathProvider.generateKey(
+      user_id,
+      event.id,
+      bannerImagePreSignDto.filename,
+    );
 
     const response = await this.r2StorageService.createPresignedUploadUrl(
-      `${path}/${bannerImagePreSignDto.filename}`,
+      key,
       300,
       bannerImagePreSignDto.mimetype,
     );
@@ -196,9 +199,8 @@ export class EventsService {
 
     await this.r2StorageService.getObject(bannerImageKey);
 
-    const publicUrl = this.configService.get<string>('r2.public_url');
-
-    const bannerUrl = `${publicUrl}/${bannerImageKey}`;
+    const bannerUrl =
+      this.eventsStoragePathProvider.generateUrl(bannerImageKey);
 
     await this.eventsRepository.update(event.id, {
       banner_url: bannerUrl,
@@ -222,11 +224,15 @@ export class EventsService {
 
     this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
 
-    const path: string = `user_${user_id}/event_${event.id}`;
-
     for (const image of galleryImagesPresignDto.gallery_images) {
+      const key: string = this.eventsStoragePathProvider.generateKey(
+        user_id,
+        event.id,
+        image.filename,
+      );
+
       const response = await this.r2StorageService.createPresignedUploadUrl(
-        `${path}/${image.filename}`,
+        key,
         1_000,
         image.mimetype,
       );
@@ -254,8 +260,6 @@ export class EventsService {
 
     this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
 
-    const publicUrl = this.configService.get<string>('r2.public_url');
-
     const createEventImageData: Array<CreateEventImageData> = [];
 
     await Promise.all(
@@ -264,7 +268,7 @@ export class EventsService {
         createEventImageData.push({
           event_id: event.id,
           object_key: key,
-          url: `${publicUrl}/${key}`,
+          url: this.eventsStoragePathProvider.generateUrl(key),
         });
       }),
     );
