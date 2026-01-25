@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const forwardGeocoderDto = z
   .object({
-    complement: z.email().min(1).max(20),
+    complement: z.string().min(1).max(20),
     street: z.string().min(1).max(50),
     city: z.string().min(1).max(50),
   })
