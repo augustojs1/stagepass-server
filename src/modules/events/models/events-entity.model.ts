@@ -9,7 +9,6 @@ export class EventsEntity {
   is_free: boolean;
   address_street: string;
   address_number: string;
-  address_neighborhood: string;
   address_district: string;
   address_city: string;
   country_id: string;

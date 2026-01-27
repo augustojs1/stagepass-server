@@ -29,7 +29,7 @@ create table users_profile (
 );
 
 -- categories
-create table categories (
+create table event_categories (
 	id UUID primary key default gen_random_uuid(),
 	name VARCHAR(100) unique not NULL,
 	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -65,20 +65,19 @@ create table events (
 	id UUID primary key default gen_random_uuid() NOT NULL,
 	organizer_id UUID references users (id) not NULL,
 	event_category_id UUID references event_categories (id) NOT NULL,
-	is_free BOOLEAN not null,
-	name VARCHAR(100) not NULL,
-	description text not NULL,
+	is_free BOOLEAN NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	description text NOT NULL,
 	banner_url text,
 	slug TEXT NOT NULL,
-	address_street VARCHAR(100) not null,
-	address_number VARCHAR(20) not null,
-	address_neighborhood VARCHAR(100) not null,
-	address_district VARCHAR(100) not null,
-	address_city VARCHAR(100) not null,
+	address_street VARCHAR(100) NOT NULL,
+	address_number VARCHAR(20) NOT NULL,
+	address_district VARCHAR(100) NOT NULL,
+	address_city VARCHAR(100) NOT NULL,
 	country_id CHAR(2) references countries (code),
-	location GEOGRAPHY(Point, 4326) not null,
-	starts_at TIMESTAMPTZ not null,
-	ends_at TIMESTAMPTZ not null,
+	location GEOGRAPHY(Point, 4326) NOT NULL,
+	starts_at TIMESTAMPTZ NOT NULL,
+	ends_at TIMESTAMPTZ NOT NULL,
 	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -117,13 +116,13 @@ check
 CREATE TABLE event_images (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id UUID REFERENCES events(id) NOT NULL,
+  url TEXT NOT NULL,
   object_key TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_event_images_event_id ON event_images(event_id);
-CREATE UNIQUE INDEX uq_event_images_event_key ON event_images(event_id, object_key);
 
 -- countries seed
 INSERT INTO countries (name, code) VALUES

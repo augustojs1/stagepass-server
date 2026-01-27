@@ -16,7 +16,14 @@ export class AddressService {
       city: forwardGeocoderDto.city,
     });
 
-    if (!geocodeResponse) {
+    if (
+      !geocodeResponse ||
+      !geocodeResponse.city ||
+      !geocodeResponse.countryCode ||
+      !geocodeResponse.streetName ||
+      !geocodeResponse.streetNumber ||
+      !geocodeResponse.state
+    ) {
       throw new BadRequestException('Invalid or non existent address!');
     }
 

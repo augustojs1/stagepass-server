@@ -18,9 +18,7 @@
 - [x] User should be able to sign-in
   - [x] Sign-in via local email and password
   - [x] Sign-in via local email and password should return access and refresh token
-  - [ ] Sign-in via Google Auth
 - [ ] Users should be able to reset their password
-- [ ] Users should be able to verify their email after sign-up
 
 ### Categories
 
@@ -30,12 +28,16 @@
 
 ### Events
 
-- [ ] Users should be able to create events
+- [x] Users should be able to create events
 - [ ] Users should be able to see a list of events that is yet to happen
 - [ ] Users should be able to filter events by category, pricing and type
 - [ ] Users should be able to search event by name
 - [ ] Users should be able to filter events around them with geolocation
 - [ ] Users should be able to update or cancel their events
+
+### Event Images
+
+- [x] Users should be able upload event image gallery.
 
 ### Event Tickets
 
@@ -91,7 +93,6 @@
 ### Email
 
 - [ ] Users should be able to receive reset password emails
-- [ ] Users should be able to receive One Time Password login email
 - [ ] Users should be able to receive email confirmation for their orders
 - [ ] Users should be able to receive their bought tickets in their email
 - [ ] Ticket delivery emails should include the QR Code / PDF attachment.

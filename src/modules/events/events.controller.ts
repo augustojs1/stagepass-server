@@ -5,19 +5,16 @@ import {
   Param,
   UseGuards,
   Req,
-  UseInterceptors,
-  UploadedFiles,
   Patch,
   UsePipes,
 } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { EventsService } from './events.service';
 import {
   CreateEventDto,
   createEventDtoSchema,
 } from './dto/request/create-event.dto';
-import { MultiFileValidationPipe, ZodValidationPipe } from '../shared/pipes';
+import { ZodValidationPipe } from '../shared/pipes';
 import { JwtAuthGuard } from '../auth/guards';
 import {
   BannerImageUploadPresignDto,
@@ -40,28 +37,12 @@ export class EventsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'banner_image', maxCount: 1 },
-      { name: 'images', maxCount: 8 },
-    ]),
-  )
   async create(
     @Req() req,
     @Body(new ZodValidationPipe(createEventDtoSchema))
     createEventDto: CreateEventDto,
-    @UploadedFiles(
-      new MultiFileValidationPipe({
-        maxSize: 7_000_000,
-        fileTypes: [/^image\//],
-      }),
-    )
-    files: {
-      banner_image?: Express.Multer.File[];
-      images?: Express.Multer.File[];
-    },
   ): Promise<CreateEventResponseDto> {
-    return await this.eventsService.create(req.user.sub, createEventDto, files);
+    return await this.eventsService.create(req.user.sub, createEventDto);
   }
 
   @UseGuards(JwtAuthGuard)
