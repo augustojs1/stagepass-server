@@ -65,7 +65,7 @@ export class UsersService {
     id: string,
     avatarUploadPresignDto: AvatarUploadPreSignDto,
   ): Promise<PreSignedResponse> {
-    const path: string = this.userStoragePathProvider.generateAvatarUrl(id);
+    const path: string = this.userStoragePathProvider.generateAvatarKey(id);
 
     const user = await this.findWithProfileById(id);
 

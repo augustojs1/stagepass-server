@@ -209,7 +209,7 @@ export class EventsService {
 
       const response = await this.r2StorageService.createPresignedUploadUrl(
         key,
-        1_000,
+        1000,
         image.mimetype,
       );
 

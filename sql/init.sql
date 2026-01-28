@@ -124,6 +124,9 @@ CREATE TABLE event_images (
 
 CREATE INDEX idx_event_images_event_id ON event_images(event_id);
 
+-- Orders
+-- UNIQUE(order_id, order_item_id)
+
 -- countries seed
 INSERT INTO countries (name, code) VALUES
 ('Afghanistan', 'AF'),

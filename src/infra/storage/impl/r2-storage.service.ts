@@ -48,7 +48,7 @@ export class R2StorageService implements ICloudStorageService {
 
   async createPresignedUploadUrl(
     key: string,
-    expiresIn: number = 600_000,
+    expiresIn: number = 300,
     contentType: string,
   ): Promise<PreSignedResponse> {
     try {

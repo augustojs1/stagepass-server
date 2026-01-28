@@ -20,6 +20,11 @@
   - [x] Sign-in via local email and password should return access and refresh token
 - [ ] Users should be able to reset their password
 
+### Users
+
+- [ ] Users should be able to upload an image for avatar
+  - [ ] Old image should be deleted from storage
+
 ### Categories
 
 - [x] Admin Users should be able to create a category
@@ -29,15 +34,15 @@
 ### Events
 
 - [x] Users should be able to create events
+- [ ] Users should be able to upload banner event
 - [ ] Users should be able to see a list of events that is yet to happen
 - [ ] Users should be able to filter events by category, pricing and type
 - [ ] Users should be able to search event by name
 - [ ] Users should be able to filter events around them with geolocation
-- [ ] Users should be able to update or cancel their events
 
 ### Event Images
 
-- [x] Users should be able upload event image gallery.
+- [x] Users should be able to upload images for the event gallery.
 
 ### Event Tickets
 
