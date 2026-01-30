@@ -124,8 +124,43 @@ CREATE TABLE event_images (
 
 CREATE INDEX idx_event_images_event_id ON event_images(event_id);
 
--- Orders
--- UNIQUE(order_id, order_item_id)
+-- orders
+create table orders (
+	id UUID primary key default gen_random_uuid(),
+	user_id UUID references users(id),
+	event_id UUID references orders(id) not null,
+	status order_statuses not null,
+	total_price BIGINT not null,
+	reservation_expires_at TIMESTAMPTZ,
+	updated_at TIMESTAMPTZ default CURRENT_TIMESTAMP,
+	created_at TIMESTAMPTZ default CURRENT_TIMESTAMP
+);
+
+-- order_item
+create table order_item (
+	id UUID primary key default gen_random_uuid(),
+	order_id UUID references orders(id),
+	event_ticket_id UUID references event_tickets(id),
+	owner_name VARCHAR(255) not null,
+	owner_email VARCHAR(255) not null,
+	unit_price BIGINT not null,
+	updated_at TIMESTAMPTZ default CURRENT_TIMESTAMP,
+	created_at TIMESTAMPTZ default CURRENT_TIMESTAMP
+);
+
+-- event_ticket_reservations
+CREATE TABLE event_ticket_reservations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  order_item_id UUID NOT NULL REFERENCES order_item(id) ON DELETE CASCADE,
+  event_ticket_id UUID NOT NULL REFERENCES event_tickets(id),
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE event_ticket_reservations
+  ADD CONSTRAINT event_ticket_reservations_order_item_uidx UNIQUE (order_item_id);
 
 -- countries seed
 INSERT INTO countries (name, code) VALUES

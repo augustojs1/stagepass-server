@@ -5,3 +5,5 @@ export * from '@/modules/shared/entities/countries.entity';
 export * from '@/modules/events/entities/event.entity';
 export * from '@/modules/events/entities/event-tickets.entity';
 export * from '@/modules/events/entities/event-images.entity';
+export * from '@/modules/orders/entities/orders.entity';
+export * from '@/modules/orders/entities/order-item.entity';
