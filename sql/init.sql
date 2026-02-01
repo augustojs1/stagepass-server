@@ -128,7 +128,7 @@ CREATE INDEX idx_event_images_event_id ON event_images(event_id);
 create table orders (
 	id UUID primary key default gen_random_uuid(),
 	user_id UUID references users(id),
-	event_id UUID references orders(id) not null,
+	event_id UUID references events(id) not null,
 	status order_statuses not null,
 	total_price BIGINT not null,
 	reservation_expires_at TIMESTAMPTZ,

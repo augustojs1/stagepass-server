@@ -33,5 +33,6 @@ import { AddressModule } from '../address/address.module';
     EventsStoragePathProvider,
   ],
   imports: [CategoriesModule, AddressModule],
+  exports: [EventsService],
 })
 export class EventsModule {}

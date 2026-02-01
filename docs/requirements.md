@@ -52,20 +52,31 @@
 - [ ] Event tickets should support different types
 - [ ] Users should be able to fetch all event tickets for an order
 
-### Order
+## #Orders
 
-- [ ] Users should be able to create an order for a ticket event
-- [ ] Users should not be able to create a ticket event order for an already started event
-- [ ] Event Ticket amount should be lowered by the amount of event tickets in order
-- [ ] Event Ticket amount should sum up by the amount of event tickets in order after it expires
-- [ ] Orders should be paid within a time limit
-- [ ] Tickets for an order is reserved for a limited amount of time
-- [ ] Orders should have a unique identifier for payment gateway integration
-- [ ] Orders should expire if not paid within the reservation time window.
+#### Create Order
 
-### Order Item
+**Endpoint:** `POST /orders`
 
-- [ ] Order item quantity should not be bigger than the amount of available event tickets
+- [x] The authenticated user should be able to create an order.
+- [x] The order must be associated with a single event (`event_id`).
+- [x] The order should be created with status `PENDING`.
+- [x] The order must store the `user_id` of the authenticated user.
+- [x] The order must not have `reservation_expires_at` set at creation.
+- [x] The API should return the created order.
+
+#### Add Order Items
+
+**Endpoint:** `POST /orders/:orderId/items`
+
+- [ ] The authenticated user should be able to add items to their own order.
+- [ ] Each order item must represent one ticket
+- [ ] Each order item must reference an `event_ticket_id`.
+- [ ] Each order item must store a snapshot of the ticket price at purchase time.
+- [ ] Each order item must include:
+  - [ ] `owner_name`
+  - [ ] `owner_email`
+- [ ] The API should return the updated list of order items.
 
 ### Reservations
 

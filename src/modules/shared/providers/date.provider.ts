@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { compareAsc } from 'date-fns';
+import { compareAsc, differenceInHours } from 'date-fns';
 
 @Injectable()
 export class DateProvider {
@@ -12,5 +12,11 @@ export class DateProvider {
     }
 
     return false;
+  }
+
+  differenceInHours(first_date: Date, second_date: Date): number {
+    const result = differenceInHours(first_date, second_date);
+
+    return result;
   }
 }
