@@ -26,7 +26,11 @@ import {
   UpdateEventImagesDto,
 } from './dto';
 import { PreSignedResponse } from '@/infra/storage/models';
-import { CreateEventImageData, EventsEntity } from './models';
+import {
+  CreateEventImageData,
+  EventsEntity,
+  EventTicketsEntity,
+} from './models';
 import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
 import { AddressService } from '../address/address.service';
 
@@ -252,5 +256,19 @@ export class EventsService {
     await this.eventsRepository.createEventImage(createEventImageData);
 
     this.logger.log(`Successfully added gallery images for event ${event.id}!`);
+  }
+
+  async findEventTicketByIdElseThrow(
+    event_ticket_id: string,
+  ): Promise<EventTicketsEntity> {
+    const eventTicket =
+      await this.eventsRepository.findEventTicketById(event_ticket_id);
+
+    if (!eventTicket) {
+      this.logger.error('Event ticket with this id not found!');
+      throw new NotFoundException('Event ticket with this id not found!');
+    }
+
+    return eventTicket;
   }
 }

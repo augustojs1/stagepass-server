@@ -1,4 +1,4 @@
-export class OrderItemEntity {
+export class OrderItemResponseDto {
   id: string;
   order_id: string;
   event_ticket_id: string;

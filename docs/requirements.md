@@ -69,14 +69,17 @@
 
 **Endpoint:** `POST /orders/:orderId/items`
 
-- [ ] The authenticated user should be able to add items to their own order.
-- [ ] Each order item must represent one ticket
-- [ ] Each order item must reference an `event_ticket_id`.
-- [ ] Each order item must store a snapshot of the ticket price at purchase time.
-- [ ] Each order item must include:
-  - [ ] `owner_name`
-  - [ ] `owner_email`
-- [ ] The API should return the updated list of order items.
+- [x] The authenticated user should be able to add items to their own order.
+  - [x] Order should exist.
+- [x] Each order item must represent one ticket.
+  - [x] Event ticket should exist.
+  - [x] Event ticket should have non-zero amount and not be sold out.
+- [x] Each order item must reference an `event_ticket_id`.
+- [x] Each order item must store a snapshot of the ticket price at purchase time.
+- [x] Each order item must include:
+  - [x] `owner_name`
+  - [x] `owner_email`
+- [x] The API should return the updated list of order items.
 
 ### Reservations
 

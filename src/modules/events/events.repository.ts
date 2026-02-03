@@ -9,6 +9,7 @@ import {
   CreateEventImageData,
   CreateEventTicketData,
   EventsEntity,
+  EventTicketsEntity,
 } from './models';
 
 @Injectable()
@@ -73,5 +74,16 @@ export class EventsRepository {
     createEventImageData: CreateEventImageData[],
   ): Promise<void> {
     await this.drizzle.insert(schema.event_images).values(createEventImageData);
+  }
+
+  async findEventTicketById(
+    event_ticket_id: string,
+  ): Promise<EventTicketsEntity | null> {
+    const eventTicket = await this.drizzle
+      .select()
+      .from(schema.event_tickets)
+      .where(eq(schema.event_tickets.id, event_ticket_id));
+
+    return eventTicket[0] ?? null;
   }
 }
