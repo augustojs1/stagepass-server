@@ -58,6 +58,17 @@ export class OrdersRepository {
     return orderItem[0];
   }
 
+  async findOneOrderItemById(
+    order_item_id: string,
+  ): Promise<OrderItemEntity | null> {
+    const orderItem = await this.drizzle
+      .select()
+      .from(schema.order_item)
+      .where(eq(schema.order_item.id, order_item_id));
+
+    return orderItem[0] ?? null;
+  }
+
   async findOrderItemByOrderId(order_id: string): Promise<OrderItemEntity[]> {
     const orderItems = await this.drizzle
       .select()
@@ -65,5 +76,11 @@ export class OrdersRepository {
       .where(eq(schema.order_item.order_id, order_id));
 
     return orderItems;
+  }
+
+  async deleteOrderItemById(order_item_id: string): Promise<void> {
+    await this.drizzle
+      .delete(schema.order_item)
+      .where(eq(schema.order_item.id, order_item_id));
   }
 }

@@ -1,4 +1,13 @@
-import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import { OrdersService } from './orders.service';
 import {
@@ -30,7 +39,7 @@ export class OrdersController {
   @Post('/:order_id/items')
   async createItem(
     @Req() req,
-    @Param('order_id') order_id: string,
+    @Param('order_id', new ParseUUIDPipe({ version: '4' })) order_id: string,
     @Body(new ZodValidationPipe(createrOrderItemDtoSchema))
     createOrderItemDto: CreateOrderItemDto,
   ): Promise<OrderItemResponseDto[]> {
@@ -38,6 +47,22 @@ export class OrdersController {
       req.user.sub,
       order_id,
       createOrderItemDto,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:order_id/items/:item_id')
+  async deleteItem(
+    @Req() req,
+    @Param('order_id', new ParseUUIDPipe({ version: '4' }))
+    order_id: string,
+    @Param('item_id', new ParseUUIDPipe({ version: '4' }))
+    order_item_id: string,
+  ) {
+    return await this.ordersService.removeOrderItem(
+      req.user.sub,
+      order_id,
+      order_item_id,
     );
   }
 }

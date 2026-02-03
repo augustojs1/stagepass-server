@@ -81,6 +81,16 @@
   - [x] `owner_email`
 - [x] The API should return the updated list of order items.
 
+#### Remove Order Item
+
+**Endpoint:** `DELETE /orders/:orderId/items/:itemId`
+
+- [x] The authenticated user should be able to remove items from their own order.
+- [x] Items may only be removed if the order status is PENDING.
+- [x] User must only remove order items from his own orders.
+- [x] Order item must be related to the order.
+- [x] Removing an item must not affect other order items.
+
 ### Reservations
 
 - [ ] Users should be able able to reserve a ticket event for purchase

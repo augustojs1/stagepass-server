@@ -42,7 +42,7 @@ export class CategoriesController {
   @Patch(':id')
   @UsePipes(new ZodValidationPipe(updateCategoryDtoSchema))
   update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<void> {
     return this.categoriesService.update(id, updateCategoryDto);
@@ -50,7 +50,9 @@ export class CategoriesController {
 
   @UseGuards(JwtAuthGuard, AdminUserGuard)
   @Delete(':id')
-  async remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<void> {
+  async remove(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<void> {
     return await this.categoriesService.remove(id);
   }
 }

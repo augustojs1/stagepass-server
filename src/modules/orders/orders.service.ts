@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 
 import { OrdersRepository } from './orders.repository';
@@ -18,7 +19,7 @@ import {
 import { EventsService } from '../events/events.service';
 import { DateProvider } from '../shared/providers';
 import { OrdersMapper } from './mappers';
-import { OrdersEntity } from './models';
+import { OrderItemEntity, OrdersEntity } from './models';
 
 @Injectable()
 export class OrdersService {
@@ -93,6 +94,20 @@ export class OrdersService {
     return order;
   }
 
+  private async findOneItemElseThrow(
+    order_item_id: string,
+  ): Promise<OrderItemEntity> {
+    const orderItem =
+      await this.ordersRepository.findOneOrderItemById(order_item_id);
+
+    if (!orderItem) {
+      this.logger.error('Order item with this id not found!');
+      throw new NotFoundException('Order item with this id not found!');
+    }
+
+    return orderItem;
+  }
+
   async createOrderItem(
     user_id: string,
     order_id: string,
@@ -150,6 +165,56 @@ export class OrdersService {
       }
 
       throw new InternalServerErrorException('Failed to create order item!');
+    }
+  }
+
+  async removeOrderItem(
+    user_id: string,
+    order_id: string,
+    order_item_id: string,
+  ): Promise<void> {
+    try {
+      const order = await this.findOneElseThrow(order_id);
+
+      if (user_id !== order.user_id) {
+        this.logger.error(`User ${user_id} does not own order ${order.id}`);
+        throw new ForbiddenException(`User does not own order!`);
+      }
+
+      if (order.status !== 'PENDING') {
+        this.logger.error(
+          'Order items can only be removed when order status is PENDING',
+        );
+        throw new UnprocessableEntityException(
+          'Order items can only be removed when order status is PENDING',
+        );
+      }
+
+      const orderItem = await this.findOneItemElseThrow(order_item_id);
+
+      if (order.id !== orderItem.order_id) {
+        this.logger.error(
+          `Order item ${orderItem.id} is not related to order ${order.id}`,
+        );
+        throw new ForbiddenException(
+          `Order item should be related to the order`,
+        );
+      }
+
+      await this.ordersRepository.deleteOrderItemById(orderItem.id);
+    } catch (error) {
+      const e = error as Error;
+
+      this.logger.error(
+        `Failed to delete order item user_id=${user_id}, order_id=${order_id}, order_item_id=${order_item_id}`,
+        e?.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to remove order item');
     }
   }
 }

@@ -7,6 +7,7 @@ import {
   Req,
   Patch,
   UsePipes,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { EventsService } from './events.service';
@@ -49,7 +50,7 @@ export class EventsController {
   @Post('/:id/banner/pre-sign')
   async createEventBannerPresign(
     @Req() req,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body(new ZodValidationPipe(uploadPresignPayloadSchema))
     bannerImagePreSignDto: BannerImageUploadPresignDto,
   ): Promise<PreSignedResponse> {
@@ -64,7 +65,7 @@ export class EventsController {
   @Patch('/:id/banner')
   async updateEventBanner(
     @Req() req,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body(new ZodValidationPipe(bannerUploadDtoSchema))
     bannerUploadDto: BannerrUploadDto,
   ): Promise<BannerUpdateResponseDto> {
@@ -79,7 +80,7 @@ export class EventsController {
   @Post('/:id/gallery-images/pre-sign')
   async createEventGalleryImagesPresign(
     @Req() req,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body(new ZodValidationPipe(galleryImagesPresignDtoSchema))
     galleryImagesPresignDto: GalleryImagesPresignDto,
   ): Promise<GalleryImagesPresignUrlsResponse> {
@@ -95,7 +96,7 @@ export class EventsController {
   @UsePipes()
   async updateGalleryImages(
     @Req() req,
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body(new ZodValidationPipe(updateEventImagesDto))
     updateEventImagesDto: UpdateEventImagesDto,
   ): Promise<void> {
