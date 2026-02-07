@@ -65,4 +65,14 @@ export class OrdersController {
       order_item_id,
     );
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/:order_id/confirm')
+  async confirmOrder(
+    @Req() req,
+    @Param('order_id', new ParseUUIDPipe({ version: '4' }))
+    order_id: string,
+  ): Promise<CreateOrderResponseDto> {
+    return await this.ordersService.confirmOrder(req.user.sub, order_id);
+  }
 }

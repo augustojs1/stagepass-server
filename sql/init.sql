@@ -154,7 +154,7 @@ CREATE TABLE event_ticket_reservations (
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   order_item_id UUID NOT NULL REFERENCES order_item(id) ON DELETE CASCADE,
   event_ticket_id UUID NOT NULL REFERENCES event_tickets(id),
-  active BOOLEAN NOT NULL DEFAULT TRUE,
+  active BOOLEAN DEFAULT TRUE,
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

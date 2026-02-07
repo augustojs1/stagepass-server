@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import * as schema from '@/infra/database/orm/drizzle/schema';
-import { OrderItemEntity, OrdersEntity } from './models';
+import { OrderEventTickets, OrderItemEntity, OrdersEntity } from './models';
 import { InsertOrderParams } from './models/insert-order-params.model';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import { InsertOrdemItemParams } from './models/insert-order-item-params';
@@ -82,5 +82,31 @@ export class OrdersRepository {
     await this.drizzle
       .delete(schema.order_item)
       .where(eq(schema.order_item.id, order_item_id));
+  }
+
+  async findOrderEventTicketsById(
+    order_id: string,
+  ): Promise<OrderEventTickets[]> {
+    const orderEventTickets = await this.drizzle
+      .select({
+        order_id: schema.orders.id,
+        event_ticket_id: schema.event_tickets.id,
+        ticket_name: schema.event_tickets.name,
+        ticket_sold: schema.event_tickets.sold,
+        ticket_amount: schema.event_tickets.amount,
+        ticket_price: schema.event_tickets.price,
+      })
+      .from(schema.orders)
+      .innerJoin(
+        schema.order_item,
+        eq(schema.order_item.order_id, schema.orders.id),
+      )
+      .innerJoin(
+        schema.event_tickets,
+        eq(schema.event_tickets.id, schema.order_item.event_ticket_id),
+      )
+      .where(eq(schema.orders.id, order_id));
+
+    return orderEventTickets;
   }
 }

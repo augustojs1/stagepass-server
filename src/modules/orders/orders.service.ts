@@ -1,13 +1,17 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   HttpException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { and, count, eq, inArray } from 'drizzle-orm';
 
 import { OrdersRepository } from './orders.repository';
 import {
@@ -20,16 +24,21 @@ import { EventsService } from '../events/events.service';
 import { DateProvider } from '../shared/providers';
 import { OrdersMapper } from './mappers';
 import { OrderItemEntity, OrdersEntity } from './models';
+import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
+import * as schema from '@/infra/database/orm/drizzle/schema';
 
 @Injectable()
 export class OrdersService {
   private readonly logger: Logger = new Logger(OrdersService.name);
+  private readonly RESERVATION_EXPIRES_AT_IN_MIN = 20 * 60 * 1000; // 20 min
 
   constructor(
     private readonly ordersRepository: OrdersRepository,
     private readonly eventsService: EventsService,
     private readonly dateProvider: DateProvider,
     private readonly ordersMapper: OrdersMapper,
+    @Inject(DATABASE_TAG)
+    private readonly drizzle: PostgresJsDatabase<typeof schema>,
   ) {}
 
   async create(
@@ -215,6 +224,159 @@ export class OrdersService {
       }
 
       throw new InternalServerErrorException('Failed to remove order item');
+    }
+  }
+
+  async confirmOrder(
+    user_id: string,
+    order_id: string,
+  ): Promise<CreateOrderResponseDto> {
+    try {
+      const order = await this.findOneElseThrow(order_id);
+
+      if (order.status !== 'PENDING') {
+        this.logger.error(
+          'Orders can only be confirmed when order status is PENDING',
+        );
+        throw new UnprocessableEntityException(
+          'Orders can only be confirmed when order status is PENDING',
+        );
+      }
+
+      if (user_id !== order.user_id) {
+        this.logger.error(`User ${user_id} does not own order ${order.id}`);
+        throw new ForbiddenException(`User does not own order!`);
+      }
+
+      const result = await this.drizzle.transaction(async (tx) => {
+        const order = await tx
+          .select()
+          .from(schema.orders)
+          .where(eq(schema.orders.id, order_id))
+          .for('update');
+
+        const orderItems = await tx
+          .select({
+            id: schema.order_item.id,
+            event_ticket_id: schema.order_item.event_ticket_id,
+            unit_price: schema.order_item.unit_price,
+          })
+          .from(schema.order_item)
+          .where(eq(schema.order_item.order_id, order_id));
+
+        if (orderItems.length === 0) {
+          throw new UnprocessableEntityException(
+            'Order must contain at least one item',
+          );
+        }
+
+        const eventTicketAmmountToBuy = new Map<string, number>();
+
+        for (const item of orderItems) {
+          if (!item.event_ticket_id) continue;
+
+          const amount =
+            (eventTicketAmmountToBuy.get(item.event_ticket_id) ?? 0) + 1;
+
+          eventTicketAmmountToBuy.set(item.event_ticket_id, amount);
+        }
+
+        const eventTicketIds = [...eventTicketAmmountToBuy.keys()];
+
+        const eventTickets = await tx
+          .select()
+          .from(schema.event_tickets)
+          .where(inArray(schema.event_tickets.id, eventTicketIds))
+          .for('update');
+
+        const ticketsReserved = await tx
+          .select({
+            event_ticket_id: schema.event_ticket_reservations.event_ticket_id,
+            reserved: count(schema.event_ticket_reservations.event_ticket_id),
+          })
+          .from(schema.event_ticket_reservations)
+          .where(
+            and(
+              eq(schema.event_ticket_reservations.active, true),
+              inArray(
+                schema.event_ticket_reservations.event_ticket_id,
+                eventTicketIds,
+              ),
+            ),
+          )
+          .groupBy(schema.event_ticket_reservations.event_ticket_id);
+
+        const ticketsReservedMap = new Map<string, number>();
+
+        for (const reservation of ticketsReserved) {
+          ticketsReservedMap.set(
+            reservation.event_ticket_id,
+            reservation.reserved,
+          );
+        }
+
+        for (const ticket of eventTickets) {
+          const ammountToBuy = eventTicketAmmountToBuy.get(ticket.id);
+          const availableAmmount =
+            ticket.amount - ticketsReservedMap.get(ticket.id);
+
+          if (ammountToBuy > availableAmmount) {
+            this.logger.error(
+              `Tickets not available for order=${order[0].id}, user_id=${user_id}, ${ticket.id}`,
+            );
+            throw new ConflictException(
+              `Amount of ${ammountToBuy} not available for ticket ${ticket.id}`,
+            );
+          }
+        }
+
+        const expiresAt = new Date(
+          Date.now() + this.RESERVATION_EXPIRES_AT_IN_MIN,
+        );
+
+        const reservations = orderItems.map((item) => {
+          return {
+            order_id: order[0].id,
+            order_item_id: item.id,
+            event_ticket_id: item.event_ticket_id,
+            expires_at: expiresAt,
+            active: true,
+          };
+        });
+
+        await tx.insert(schema.event_ticket_reservations).values(reservations);
+
+        const totalPrice = orderItems.reduce((acc, item) => {
+          return acc + item.unit_price;
+        }, 0);
+
+        const updatedOrder = await tx
+          .update(schema.orders)
+          .set({
+            reservation_expires_at: expiresAt,
+            status: 'AWAITING_PAYMENT',
+            total_price: totalPrice,
+          })
+          .where(eq(schema.orders.id, order_id))
+          .returning();
+
+        return updatedOrder[0];
+      });
+
+      return result;
+    } catch (error) {
+      const e = error as Error;
+
+      this.logger.error(
+        `Failed to confirm order user_id=${user_id}, order_id=${order_id}`,
+        e?.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to confirm order');
     }
   }
 }

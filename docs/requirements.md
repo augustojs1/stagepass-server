@@ -81,6 +81,22 @@
   - [x] `owner_email`
 - [x] The API should return the updated list of order items.
 
+#### Confirm Order and Create Reservations
+
+**Endpoint:** `POST /orders/:orderId/confirm`
+
+- [x] The authenticated user should be able to confirm their own order.
+- [x] Confirming an order must reserve all order items atomically
+- [x] Reservations must expire after 20 minutes.
+- [x] The order status must change from PENDING to AWAITING_PAYMENT.
+- [x] The order must receive reservation_expires_at = now() + 20 minutes.
+- [x] The operation must be fully transactional (atomic).
+- [x] Overselling must be prevented using concurrency-safe logic (row-level locking).
+- [x] The API must return:
+  - [x] Order ID
+  - [x] Order status
+- [x] Reservation expiration timestamp
+
 #### Remove Order Item
 
 **Endpoint:** `DELETE /orders/:orderId/items/:itemId`
