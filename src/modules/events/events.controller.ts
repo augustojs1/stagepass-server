@@ -6,8 +6,8 @@ import {
   UseGuards,
   Req,
   Patch,
-  UsePipes,
   ParseUUIDPipe,
+  Get,
 } from '@nestjs/common';
 
 import { EventsService } from './events.service';
@@ -23,6 +23,7 @@ import {
   BannerUpdateResponseDto,
   bannerUploadDtoSchema,
   CreateEventResponseDto,
+  EventsWithTicketsAndImagesDto,
   GalleryImagesPresignDto,
   galleryImagesPresignDtoSchema,
   updateEventImagesDto,
@@ -93,7 +94,6 @@ export class EventsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/:id/gallery-images')
-  @UsePipes()
   async updateGalleryImages(
     @Req() req,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -105,5 +105,13 @@ export class EventsController {
       req.user.sub,
       updateEventImagesDto,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/:identifier/tickets')
+  async getEventWithTickets(
+    @Param('identifier') identifier: string,
+  ): Promise<EventsWithTicketsAndImagesDto> {
+    return await this.eventsService.findEventWithTickets(identifier);
   }
 }

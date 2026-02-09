@@ -12,7 +12,7 @@
 	Functional Requirements
 </h3>
 
-### Authentication
+## #Authentication
 
 - [x] Users should be able sign-up
 - [x] User should be able to sign-in
@@ -20,18 +20,30 @@
   - [x] Sign-in via local email and password should return access and refresh token
 - [ ] Users should be able to reset their password
 
-### Users
+## #Users
 
 - [ ] Users should be able to upload an image for avatar
   - [ ] Old image should be deleted from storage
 
-### Categories
+#### Get User orders
+
+**Endpoint:** `GET /me/orders`
+
+- [ ] The authenticated user should be able to fetch its orders with a summary of the event.
+
+#### Get User order items by order id
+
+**Endpoint:** `GET /me/orders/:order_id/items`
+
+- [ ] The authenticated user should be able to fetch order items from a order id.
+
+## #Categories
 
 - [x] Admin Users should be able to create a category
 - [x] Admin Users Users should be able to update a category
 - [x] Admin Users should be able to delete a category
 
-### Events
+## #Events
 
 - [x] Users should be able to create events
 - [ ] Users should be able to upload banner event
@@ -40,11 +52,25 @@
 - [ ] Users should be able to search event by name
 - [ ] Users should be able to filter events around them with geolocation
 
-### Event Images
+#### Get Event Orders
+
+**Endpoint:** `GET /events/:event_id/orders`
+
+- [ ] The authenticated user should be the event organizer.
+- [ ] Endpoint should list every order for that event.
+
+#### Get Event By slug or id with tickets
+
+**Endpoint:** `GET /events/:identifier/tickets`
+
+- [x] The event should exist.
+- [x] Endpoint should return the event with a list of its associated tickets.
+
+## #Event Images
 
 - [x] Users should be able to upload images for the event gallery.
 
-### Event Tickets
+## #Event Tickets
 
 - [ ] Users should be able to create event tickets for an event
 - [ ] Event tickets should have a maximum capacity
@@ -107,22 +133,22 @@
 - [x] Order item must be related to the order.
 - [x] Removing an item must not affect other order items.
 
-### Reservations
+## #Reservations
 
-- [ ] Users should be able able to reserve a ticket event for purchase
-- [ ] Reservations should expire after 20 minutes
-- [ ] Event ticket order should be cancelled after reservation expires
-- [ ] Reservation expiration should trigger an event to release tickets and cancel the related order
-- [ ] Reservations should not allow overselling
+- [x] Users should be able able to reserve a ticket event for purchase.
+- [x] Reservations should expire after a time limit in minutes.
+- [ ] Event ticket order should be cancelled after reservation expires.
+- [ ] Reservation expiration should trigger an event to release tickets and cancel the related order.
+- [x] Reservations should not allow overselling.
 
-### Tickets
+## #Tickets
 
-- [ ] User tickets should be generated after succesfully paid for order
-- [ ] User should be able to fetch all of their tickets
+- [ ] User tickets should be generated after succesfully paid for order.
+- [ ] User should be able to fetch all of their tickets.
 - [ ] Tickets should be unique and contain a secure code (QR Code + hash)
-- [ ] Tickets should be associated with an owner name and email
+- [ ] Tickets should be associated with an owner name and email.
 
-### Payment
+## #Payment
 
 - [ ] Users should be able to pay for an order
 - [ ] Successfull paid orders should have their status updated to PAID
@@ -130,12 +156,12 @@
 - [ ] Payment webhook retries should be idempotent.
 - [ ] Orders should not be marked as PAID until payment is confirmed via webhook.
 
-### Payment Order
+## #Payment Order
 
 - [ ] Successfull payment orders should have their status updated to PAID
 - [ ] Failed payment orders should have their status updated to FAILED
 
-### Email
+## #Email
 
 - [ ] Users should be able to receive reset password emails
 - [ ] Users should be able to receive email confirmation for their orders

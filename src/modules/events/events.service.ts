@@ -2,8 +2,10 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  HttpException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -22,6 +24,7 @@ import {
   BannerImageUploadPresignDto,
   BannerUpdateResponseDto,
   CreateEventResponseDto,
+  EventsWithTicketsAndImagesDto,
   GalleryImagesPresignDto,
   UpdateEventImagesDto,
 } from './dto';
@@ -33,6 +36,8 @@ import {
 } from './models';
 import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
 import { AddressService } from '../address/address.service';
+import { isUUID } from '@/modules/shared/utils';
+import { EventWithTicketsAndImages } from './models/event-with-tickets-and-images.model';
 
 @Injectable()
 export class EventsService {
@@ -270,5 +275,77 @@ export class EventsService {
     }
 
     return eventTicket;
+  }
+
+  async findEventWithTicketsByIdElseThrow(event_id: string): Promise<any> {
+    const eventWithTickets =
+      await this.eventsRepository.findWithTicketsAndImagesById(event_id);
+
+    if (!eventWithTickets) {
+      this.logger.error(`Event with event_id=${event_id} id does not exists!`);
+      throw new NotFoundException(`Event with this id does not exists!`);
+    }
+
+    return eventWithTickets;
+  }
+
+  async findEventWithTicketsBySlugElseThrow(slug: string): Promise<any> {
+    const eventWithTickets =
+      await this.eventsRepository.findWithTicketsAndImagesBySlug(slug);
+
+    if (!eventWithTickets || eventWithTickets.length === 0) {
+      this.logger.error(`Event with slug=${slug} does not exists!`);
+      throw new NotFoundException(`Event with this slug does not exists!`);
+    }
+
+    return eventWithTickets;
+  }
+
+  async findEventWithTickets(
+    identifier: string,
+  ): Promise<EventsWithTicketsAndImagesDto> {
+    let eventWithTickets: EventWithTicketsAndImages[];
+
+    try {
+      const isUuid = isUUID(identifier);
+
+      if (isUuid) {
+        eventWithTickets =
+          await this.eventsRepository.findWithTicketsAndImagesBySlug(
+            identifier,
+          );
+      }
+
+      eventWithTickets =
+        await this.eventsRepository.findWithTicketsAndImagesBySlug(identifier);
+
+      if (!eventWithTickets || eventWithTickets.length === 0) {
+        this.logger.error(
+          `Event with identifier=${identifier} does not exists!`,
+        );
+        throw new NotFoundException(
+          `Event with this identifier does not exists!`,
+        );
+      }
+
+      return this.eventsMapper.eventToEventWithTicketsAndImagesDto(
+        eventWithTickets,
+      );
+    } catch (error) {
+      const e = error as Error;
+
+      this.logger.error(
+        `Failed to get events with identifier=${identifier}`,
+        e?.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        'Failed to get events with tickets',
+      );
+    }
   }
 }

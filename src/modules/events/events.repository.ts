@@ -11,6 +11,7 @@ import {
   EventsEntity,
   EventTicketsEntity,
 } from './models';
+import { EventWithTicketsAndImages } from './models/event-with-tickets-and-images.model';
 
 @Injectable()
 export class EventsRepository {
@@ -85,5 +86,43 @@ export class EventsRepository {
       .where(eq(schema.event_tickets.id, event_ticket_id));
 
     return eventTicket[0] ?? null;
+  }
+
+  async findWithTicketsAndImagesById(
+    event_id: string,
+  ): Promise<EventWithTicketsAndImages[]> {
+    const eventWithTickets = await this.drizzle
+      .select()
+      .from(schema.events)
+      .innerJoin(
+        schema.event_tickets,
+        eq(schema.events.id, schema.event_tickets.event_id),
+      )
+      .innerJoin(
+        schema.event_images,
+        eq(schema.events.id, schema.event_images.event_id),
+      )
+      .where(eq(schema.events.id, event_id));
+
+    return eventWithTickets;
+  }
+
+  async findWithTicketsAndImagesBySlug(
+    slug: string,
+  ): Promise<EventWithTicketsAndImages[]> {
+    const eventWithTickets = await this.drizzle
+      .select()
+      .from(schema.events)
+      .innerJoin(
+        schema.event_tickets,
+        eq(schema.events.id, schema.event_tickets.event_id),
+      )
+      .innerJoin(
+        schema.event_images,
+        eq(schema.events.id, schema.event_images.event_id),
+      )
+      .where(eq(schema.events.slug, slug));
+
+    return eventWithTickets;
   }
 }
