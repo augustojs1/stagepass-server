@@ -162,6 +162,10 @@ CREATE TABLE event_ticket_reservations (
 ALTER TABLE event_ticket_reservations
   ADD CONSTRAINT event_ticket_reservations_order_item_uidx UNIQUE (order_item_id);
 
+CREATE INDEX orders_expiration_idx
+	ON orders(reservation_expires_at)
+WHERE status = 'AWAITING_PAYMENT';
+
 -- countries seed
 INSERT INTO countries (name, code) VALUES
 ('Afghanistan', 'AF'),

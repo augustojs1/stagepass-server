@@ -1,7 +1,7 @@
-## 🎟️ StagePass
+## 🎟️ StagePass Server
 
-**StagePass** is a full-stack ticketing platform for **event creation**, **ticket sales**, and **secure online purchases**.  
-It is built with **Next.js, NestJS, PostgreSQL, Drizzle, Redis, and Docker**, focusing on real-world challenges like  
+**StagePass** is a REST API for **event creation**, **ticket sales**, and **secure online purchases**.  
+It is built with **NestJS, PostgreSQL, Drizzle, RabbitMQ, and Docker**, focusing on real-world challenges like  
 **ticket reservation concurrency, payment integration, and background processing**.
 
 ### 🔑 Key Features
@@ -15,4 +15,4 @@ It is built with **Next.js, NestJS, PostgreSQL, Drizzle, Redis, and Docker**, fo
 ---
 
 StagePass simulates a **production-ready ticketing system** inspired by platforms like _Eventbrite_ and _Sympla_,  
-serving as a **portfolio project** to showcase Back-End and Front-End skills.
+serving as a **portfolio project** to showcase Back-End skills.

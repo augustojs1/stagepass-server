@@ -311,13 +311,13 @@ export class EventsService {
 
       if (isUuid) {
         eventWithTickets =
+          await this.eventsRepository.findWithTicketsAndImagesById(identifier);
+      } else {
+        eventWithTickets =
           await this.eventsRepository.findWithTicketsAndImagesBySlug(
             identifier,
           );
       }
-
-      eventWithTickets =
-        await this.eventsRepository.findWithTicketsAndImagesBySlug(identifier);
 
       if (!eventWithTickets || eventWithTickets.length === 0) {
         this.logger.error(
