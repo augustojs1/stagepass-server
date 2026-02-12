@@ -27,4 +27,9 @@ export const configuration = () => ({
     bucket: process.env.R2_BUCKET,
     public_url: process.env.R2_PUBLIC_URL,
   },
+  stripe: {
+    publishable_key: process.env.STRIPE_PUBLISHABLE_KEY,
+    secret_key: process.env.STRIPE_SECRET_KEY,
+    webhook_key: process.env.STRIPE_WEBHOOK_KEY,
+  },
 });

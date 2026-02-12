@@ -26,6 +26,7 @@ import { OrdersMapper } from './mappers';
 import { OrderItemEntity, OrdersEntity } from './models';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
+import { IPaymentGateway } from '@/infra/payment-gateway/ipayment-gateway.interface';
 
 @Injectable()
 export class OrdersService {
@@ -33,12 +34,13 @@ export class OrdersService {
   private readonly RESERVATION_EXPIRES_AT_IN_MIN = 20 * 60 * 1000; // 20 min
 
   constructor(
+    @Inject(DATABASE_TAG)
+    private readonly drizzle: PostgresJsDatabase<typeof schema>,
     private readonly ordersRepository: OrdersRepository,
     private readonly eventsService: EventsService,
     private readonly dateProvider: DateProvider,
     private readonly ordersMapper: OrdersMapper,
-    @Inject(DATABASE_TAG)
-    private readonly drizzle: PostgresJsDatabase<typeof schema>,
+    private readonly paymentGateway: IPaymentGateway,
   ) {}
 
   async create(

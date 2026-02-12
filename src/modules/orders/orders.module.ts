@@ -7,6 +7,7 @@ import { OrdersRepository } from './orders.repository';
 import { EventsModule } from '../events/events.module';
 import { DateProvider } from '../shared/providers';
 import { OrdersMapper } from './mappers';
+import { PaymentGatewayModule } from '@/infra/payment-gateway/payment-gateway.module';
 
 @Module({
   controllers: [OrdersController],
@@ -17,6 +18,6 @@ import { OrdersMapper } from './mappers';
     DateProvider,
     OrdersMapper,
   ],
-  imports: [EventsModule],
+  imports: [EventsModule, PaymentGatewayModule],
 })
 export class OrdersModule {}
