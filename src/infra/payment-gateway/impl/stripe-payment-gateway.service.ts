@@ -23,7 +23,9 @@ export class StripePaymentGatewayService implements IPaymentGateway {
     this.logger.log('Succesfully init Stripe Client');
   }
 
-  public async process(data: OrderPaymentPayload): Promise<string> {
+  public async process(
+    data: OrderPaymentPayload,
+  ): Promise<{ payment_url: string }> {
     this.logger.log('Stripe received payment to process', data);
 
     try {
@@ -42,8 +44,8 @@ export class StripePaymentGatewayService implements IPaymentGateway {
           },
         ],
         mode: 'payment',
-        // success_url: `https://supersell.augustojsdev.com.br/payment/success?orderId=${data.order_id}`,
-        // cancel_url: `https://supersell.augustojsdev.com.br/payment/failed?orderId=${data.order_id}`,
+        success_url: `https://stagepass.augustojsdev.com.br/payment/success?orderId=${data.order_id}`,
+        cancel_url: `https://stagepass.augustojsdev.com.br/payment/failed?orderId=${data.order_id}`,
         metadata: {
           orderId: data.order_id,
         },
@@ -51,7 +53,9 @@ export class StripePaymentGatewayService implements IPaymentGateway {
 
       this.logger.log('Stripe successfully processed payment', data);
 
-      return session.url;
+      return {
+        payment_url: session.url,
+      };
     } catch (error) {
       this.logger.error('Stripe error processing a payment', data);
       throw error;

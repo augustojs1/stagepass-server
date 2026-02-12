@@ -381,4 +381,45 @@ export class OrdersService {
       throw new InternalServerErrorException('Failed to confirm order');
     }
   }
+
+  async payOrder(
+    user_id: string,
+    order_id: string,
+  ): Promise<{ payment_url: string }> {
+    try {
+      const order = await this.findOneElseThrow(order_id);
+
+      if (user_id !== order.user_id) {
+        this.logger.error(`User ${user_id} does not own order ${order.id}`);
+        throw new ForbiddenException(`User does not own order!`);
+      }
+
+      if (order.status !== 'AWAITING_PAYMENT') {
+        this.logger.error(
+          'Order items can only be removed when order status is PENDING',
+        );
+        throw new UnprocessableEntityException(
+          'Order items can only be removed when order status is PENDING',
+        );
+      }
+
+      return await this.paymentGateway.process({
+        order_id: order.id,
+        amount: order.total_price,
+      });
+    } catch (error) {
+      const e = error as Error;
+
+      this.logger.error(
+        `Failed to pay for order order_id=${order_id}, item user_id=${user_id}`,
+        e?.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to pay order');
+    }
+  }
 }

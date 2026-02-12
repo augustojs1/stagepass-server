@@ -75,4 +75,14 @@ export class OrdersController {
   ): Promise<CreateOrderResponseDto> {
     return await this.ordersService.confirmOrder(req.user.sub, order_id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/:order_id/pay')
+  async payOrder(
+    @Req() req,
+    @Param('order_id', new ParseUUIDPipe({ version: '4' }))
+    order_id: string,
+  ): Promise<{ payment_url: string }> {
+    return await this.ordersService.payOrder(req.user.sub, order_id);
+  }
 }
