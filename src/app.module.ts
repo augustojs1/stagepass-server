@@ -11,6 +11,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { EventsModule } from './modules/events/events.module';
 import { AddressModule } from './modules/address/address.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { WebhooksModule } from './infra/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { OrdersModule } from './modules/orders/orders.module';
     EventsModule,
     AddressModule,
     OrdersModule,
+    WebhooksModule,
   ],
   providers: [
     {

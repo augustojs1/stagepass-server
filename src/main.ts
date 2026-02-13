@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import * as express from 'express';
 import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
@@ -33,6 +34,11 @@ async function bootstrap() {
   app.useGlobalFilters(new AppExceptionFilter());
 
   app.setGlobalPrefix('api/v1');
+
+  app.use(
+    '/api/v1/webhooks/payment/stripe',
+    express.raw({ type: 'application/json' }),
+  );
 
   await app.listen(PORT ?? 8080, '0.0.0.0');
 
