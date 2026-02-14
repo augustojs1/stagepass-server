@@ -125,6 +125,13 @@ CREATE TABLE event_images (
 CREATE INDEX idx_event_images_event_id ON event_images(event_id);
 
 -- orders
+CREATE TYPE order_statuses AS ENUM ('PENDING',
+  'AWAITING_PAYMENT',
+  'PAID',
+  'EXPIRED',
+  'CANCELLED',
+  'FAILED');
+
 create table orders (
 	id UUID primary key default gen_random_uuid(),
 	user_id UUID references users(id),
@@ -165,6 +172,38 @@ ALTER TABLE event_ticket_reservations
 CREATE INDEX orders_expiration_idx
 	ON orders(reservation_expires_at)
 WHERE status = 'AWAITING_PAYMENT';
+
+-- payment_orders
+CREATE TYPE payment_providers AS ENUM ('STRIPE');
+
+CREATE TYPE payment_order_statuses AS ENUM (
+  'PENDING',
+  'SUCCEEDED',
+  'FAILED',
+  'CANCELLED'
+);
+
+CREATE TABLE payment_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  provider payment_providers NOT NULL DEFAULT 'STRIPE',
+  provider_reference_id TEXT NOT NULL, 
+  status payment_order_statuses NOT NULL DEFAULT 'PENDING',
+	checkout_url TEXT,
+  amount BIGINT NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'USD',
+  receipt_url TEXT,
+  error_code TEXT,
+  error_message TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX payment_provider_and_provider_reference_uidx ON payment_orders(provider, provider_reference_id);
+
+CREATE INDEX payment_order_id_and_created_at_idx ON payment_orders(order_id, created_at DESC);
+
+CREATE INDEX payment_order_status_and_id_idx ON payment_orders(order_id, status);
 
 -- countries seed
 INSERT INTO countries (name, code) VALUES

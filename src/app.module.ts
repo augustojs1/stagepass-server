@@ -12,6 +12,7 @@ import { EventsModule } from './modules/events/events.module';
 import { AddressModule } from './modules/address/address.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { WebhooksModule } from './infra/webhooks/webhooks.module';
+import { PaymentOrdersModule } from './modules/payment-orders/payment-orders.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { WebhooksModule } from './infra/webhooks/webhooks.module';
     AddressModule,
     OrdersModule,
     WebhooksModule,
+    PaymentOrdersModule,
   ],
   providers: [
     {

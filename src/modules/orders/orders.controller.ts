@@ -17,6 +17,8 @@ import {
   createrOrderDtoSchema,
   createrOrderItemDtoSchema,
   OrderItemResponseDto,
+  PayOrderDto,
+  payOrderDtoSchema,
 } from './dto';
 import { ZodValidationPipe } from '../shared/pipes';
 import { JwtAuthGuard } from '../auth/guards';
@@ -81,8 +83,14 @@ export class OrdersController {
   async payOrder(
     @Req() req,
     @Param('order_id', new ParseUUIDPipe({ version: '4' }))
+    @Body(new ZodValidationPipe(payOrderDtoSchema))
+    payOrderDto: PayOrderDto,
     order_id: string,
   ): Promise<{ payment_url: string }> {
-    return await this.ordersService.payOrder(req.user.sub, order_id);
+    return await this.ordersService.payOrder(
+      req.user.sub,
+      order_id,
+      payOrderDto,
+    );
   }
 }

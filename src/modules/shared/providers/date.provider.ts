@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { compareAsc, differenceInHours } from 'date-fns';
+import { compareAsc, differenceInHours, isBefore, parse } from 'date-fns';
 
 @Injectable()
 export class DateProvider {
@@ -18,5 +18,15 @@ export class DateProvider {
     const result = differenceInHours(first_date, second_date);
 
     return result;
+  }
+
+  isExpired(expiresAt: string, now: Date = new Date()): boolean {
+    const expiresAtDate = parse(
+      expiresAt,
+      'yyyy-MM-dd HH:mm:ss.SSS xx',
+      new Date(),
+    );
+
+    return isBefore(expiresAtDate, now);
   }
 }

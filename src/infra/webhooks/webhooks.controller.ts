@@ -1,13 +1,6 @@
-import {
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Controller, HttpCode, Post, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import Stripe from 'stripe';
 
 @Controller('webhooks')
@@ -34,17 +27,32 @@ export class WebhooksController {
       this.configService.get<string>('stripe.webhook_key'),
     );
 
-    if (event.type === 'checkout.session.completed') {
-      console.log('event.:', event);
+    console.log('Stripe event.:', event);
 
-      const session = event.data.object;
+    // CASE: 'checkout.session.completed'
+    // Localizar payment_order pelo provider_reference_id (session.id / payment_intent_id)
+    // Joga evento na fila para
+    // marca payment_orders como SUCCEEDED
+    // marca orders como PAID
+    // Desativar as reservas dessa order
+    // Gerar tickets
+    // obs: tentar guardar o receipt_url que vem de charge.updated
+    // etc.
 
-      const orderId = session.metadata?.orderId;
-      const status = session.payment_status;
+    // CASE: Falha
+    // Webhook chega → marca payment_orders como FAILED
+    // order continua AWAITING_PAYMENT pra permitir retry até expirar
 
-      if (status === 'paid') {
-      }
-    }
+    // if (event.type === 'checkout.session.completed') {
+
+    //   const session = event.data.object;
+
+    //   const orderId = session.metadata?.orderId;
+    //   const status = session.payment_status;
+
+    //   if (status === 'paid') {
+    //   }
+    // }
 
     return;
   }

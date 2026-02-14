@@ -19,6 +19,7 @@ import {
   CreateOrderItemDto,
   CreateOrderResponseDto,
   OrderItemResponseDto,
+  PayOrderDto,
 } from './dto';
 import { EventsService } from '../events/events.service';
 import { DateProvider } from '../shared/providers';
@@ -27,6 +28,8 @@ import { OrderItemEntity, OrdersEntity } from './models';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
 import { IPaymentGateway } from '@/infra/payment-gateway/ipayment-gateway.interface';
+import { PaymentOrdersService } from '../payment-orders/payment-orders.service';
+import { PaymentProviders } from '../payment-orders/enum';
 
 @Injectable()
 export class OrdersService {
@@ -40,6 +43,7 @@ export class OrdersService {
     private readonly eventsService: EventsService,
     private readonly dateProvider: DateProvider,
     private readonly ordersMapper: OrdersMapper,
+    private readonly paymentOrdersService: PaymentOrdersService,
     private readonly paymentGateway: IPaymentGateway,
   ) {}
 
@@ -385,9 +389,22 @@ export class OrdersService {
   async payOrder(
     user_id: string,
     order_id: string,
+    pay_order_dto: PayOrderDto,
   ): Promise<{ payment_url: string }> {
     try {
+      // Order tem que existir
       const order = await this.findOneElseThrow(order_id);
+
+      // Validar reservation_expires_at > now()
+      if (this.dateProvider.isExpired(String(order.reservation_expires_at))) {
+        this.logger.error(`Order ${order.id} reservation is expired!`);
+        throw new ConflictException(`Can not pay an expired order!`);
+      }
+
+      // Buscar payment orders
+      // Caso houver payment_orders PENDING para essa order retornar o checkout_url dela
+      // Criar nova payment_order com status pending
+      // Se order PAID retornar 200
 
       if (user_id !== order.user_id) {
         this.logger.error(`User ${user_id} does not own order ${order.id}`);
@@ -396,17 +413,24 @@ export class OrdersService {
 
       if (order.status !== 'AWAITING_PAYMENT') {
         this.logger.error(
-          'Order items can only be removed when order status is PENDING',
+          'Order items can only be paid when order status is PENDING',
         );
         throw new UnprocessableEntityException(
-          'Order items can only be removed when order status is PENDING',
+          'Order items can only be paid when order status is PENDING',
         );
       }
 
-      return await this.paymentGateway.process({
-        order_id: order.id,
-        amount: order.total_price,
-      });
+      this.logger.log(
+        `Init order payment via ${pay_order_dto.payment_provider} provider!`,
+      );
+
+      switch (pay_order_dto.payment_provider) {
+        case PaymentProviders.STRIPE:
+          return await this.paymentGateway.process({
+            order_id: order.id,
+            amount: order.total_price,
+          });
+      }
     } catch (error) {
       const e = error as Error;
 
