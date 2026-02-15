@@ -109,4 +109,13 @@ export class OrdersRepository {
 
     return orderEventTickets;
   }
+
+  async update(order: OrdersEntity): Promise<void> {
+    await this.drizzle
+      .update(schema.orders)
+      .set({
+        ...order,
+      })
+      .where(eq(schema.orders.id, order.id));
+  }
 }

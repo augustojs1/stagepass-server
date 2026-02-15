@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
-import { compareAsc, differenceInHours, isBefore, parse } from 'date-fns';
+import {
+  compareAsc,
+  differenceInHours,
+  format,
+  isBefore,
+  parse,
+} from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class DateProvider {
@@ -28,5 +35,13 @@ export class DateProvider {
     );
 
     return isBefore(expiresAtDate, now);
+  }
+
+  unixToTimezoneTimestamp(unixTimestamp: number, timezone: string): string {
+    const date = new Date(unixTimestamp * 1000);
+
+    const zonedDate = toZonedTime(date, timezone);
+
+    return format(zonedDate, 'yyyy-MM-dd HH:mm:ss.SSS xxx');
   }
 }

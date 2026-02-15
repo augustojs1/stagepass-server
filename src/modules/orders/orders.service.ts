@@ -19,6 +19,7 @@ import {
   CreateOrderItemDto,
   CreateOrderResponseDto,
   OrderItemResponseDto,
+  PayOrderCheckoutResponseDto,
   PayOrderDto,
 } from './dto';
 import { EventsService } from '../events/events.service';
@@ -30,6 +31,7 @@ import * as schema from '@/infra/database/orm/drizzle/schema';
 import { IPaymentGateway } from '@/infra/payment-gateway/ipayment-gateway.interface';
 import { PaymentOrdersService } from '../payment-orders/payment-orders.service';
 import { PaymentProviders } from '../payment-orders/enum';
+import { CheckoutSessionData } from '@/infra/payment-gateway/models';
 
 @Injectable()
 export class OrdersService {
@@ -390,21 +392,31 @@ export class OrdersService {
     user_id: string,
     order_id: string,
     pay_order_dto: PayOrderDto,
-  ): Promise<{ payment_url: string }> {
+  ): Promise<PayOrderCheckoutResponseDto> {
     try {
       // Order tem que existir
       const order = await this.findOneElseThrow(order_id);
 
-      // Validar reservation_expires_at > now()
+      // Caso order estiver pago retornar
+      if (order.status === 'PAID') {
+        const paymentOrder =
+          await this.paymentOrdersService.findLastPaymentOrderByOrderBy(
+            order.id,
+          );
+
+        return {
+          status: 'SUCCEEDED',
+          receipt_url: paymentOrder.receipt_url,
+          provider: paymentOrder.provider as PaymentProviders,
+          checkout_url: null,
+          checkout_url_expires_at: String(paymentOrder.checkout_url_expires_at),
+        };
+      }
+
       if (this.dateProvider.isExpired(String(order.reservation_expires_at))) {
         this.logger.error(`Order ${order.id} reservation is expired!`);
         throw new ConflictException(`Can not pay an expired order!`);
       }
-
-      // Buscar payment orders
-      // Caso houver payment_orders PENDING para essa order retornar o checkout_url dela
-      // Criar nova payment_order com status pending
-      // Se order PAID retornar 200
 
       if (user_id !== order.user_id) {
         this.logger.error(`User ${user_id} does not own order ${order.id}`);
@@ -413,10 +425,10 @@ export class OrdersService {
 
       if (order.status !== 'AWAITING_PAYMENT') {
         this.logger.error(
-          'Order items can only be paid when order status is PENDING',
+          'Order items can only be paid when order status is AWAITING_PAYMENT',
         );
         throw new UnprocessableEntityException(
-          'Order items can only be paid when order status is PENDING',
+          'Order items can only be paid when order status is AWAITING_PAYMENT',
         );
       }
 
@@ -424,12 +436,121 @@ export class OrdersService {
         `Init order payment via ${pay_order_dto.payment_provider} provider!`,
       );
 
-      switch (pay_order_dto.payment_provider) {
-        case PaymentProviders.STRIPE:
-          return await this.paymentGateway.process({
+      let checkoutData: CheckoutSessionData;
+
+      // Buscar payment orders
+      const paymentOrder =
+        await this.paymentOrdersService.findLastPaymentOrderByOrderBy(order.id);
+
+      if (!paymentOrder) {
+        switch (pay_order_dto.payment_provider) {
+          case PaymentProviders.STRIPE:
+            checkoutData = await this.paymentGateway.process({
+              order_id: order.id,
+              amount: order.total_price,
+            });
+        }
+
+        await this.paymentOrdersService.create({
+          order_id: order.id,
+          amount: order.total_price,
+          currency: 'USD',
+          provider: PaymentProviders.STRIPE,
+          status: 'PENDING',
+          checkout_url: checkoutData.checkout_url,
+          checkout_url_expires_at: new Date(
+            this.dateProvider.unixToTimezoneTimestamp(
+              checkoutData.checkout_url_expires_at,
+              'America/Sao_Paulo',
+            ),
+          ),
+        });
+
+        return {
+          receipt_url: null,
+          status: 'PENDING',
+          provider: checkoutData.provider,
+          checkout_url: checkoutData.checkout_url,
+          checkout_url_expires_at: this.dateProvider.unixToTimezoneTimestamp(
+            checkoutData.checkout_url_expires_at,
+            'America/Sao_Paulo',
+          ),
+        };
+      } else {
+        const shouldCreateNewOrderPaymentStatuses = new Set([
+          'CANCELLED',
+          'FAILED',
+        ]);
+
+        // Caso houver payment_orders PENDING para essa order e não expirou retornar o checkout_url dela
+        if (paymentOrder.status === 'PENDING') {
+          return {
+            status: 'PENDING',
+            receipt_url: paymentOrder.receipt_url,
+            provider: checkoutData.provider,
+            checkout_url: paymentOrder.checkout_url,
+            checkout_url_expires_at: String(
+              paymentOrder.checkout_url_expires_at,
+            ),
+          };
+        }
+
+        if (shouldCreateNewOrderPaymentStatuses.has(paymentOrder.status)) {
+          switch (pay_order_dto.payment_provider) {
+            case PaymentProviders.STRIPE:
+              checkoutData = await this.paymentGateway.process({
+                order_id: order.id,
+                amount: order.total_price,
+              });
+          }
+
+          await this.paymentOrdersService.create({
             order_id: order.id,
             amount: order.total_price,
+            currency: 'USD',
+            provider: PaymentProviders.STRIPE,
+            status: 'PENDING',
+            checkout_url: checkoutData.checkout_url,
+            checkout_url_expires_at: new Date(
+              this.dateProvider.unixToTimezoneTimestamp(
+                checkoutData.checkout_url_expires_at,
+                'America/Sao_Paulo',
+              ),
+            ),
           });
+
+          return {
+            receipt_url: null,
+            status: 'PENDING',
+            provider: checkoutData.provider,
+            checkout_url: checkoutData.checkout_url,
+            checkout_url_expires_at: this.dateProvider.unixToTimezoneTimestamp(
+              checkoutData.checkout_url_expires_at,
+              'America/Sao_Paulo',
+            ),
+          };
+        }
+
+        if (paymentOrder.status === 'SUCCEEDED') {
+          return {
+            receipt_url: paymentOrder.receipt_url,
+            status: 'SUCCEEDED',
+            provider: checkoutData.provider,
+            checkout_url: null,
+            checkout_url_expires_at: null,
+          };
+        }
+
+        // Caso último payment_order está com checkout url expirada, marcar ela como expirada e criar uma nova
+        if (
+          this.dateProvider.isExpired(
+            String(paymentOrder.checkout_url_expires_at),
+          )
+        ) {
+          paymentOrder.status = 'FAILED';
+
+          await this.paymentOrdersService.update(paymentOrder);
+        }
       }
     } catch (error) {
       const e = error as Error;

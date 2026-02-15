@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
 import { IPaymentGateway } from '@/infra/payment-gateway/ipayment-gateway.interface';
-import { OrderPaymentPayload } from '../models';
+import { CheckoutSessionData, OrderPaymentPayload } from '../models';
+import { PaymentProviders } from '@/modules/payment-orders/enum';
 
 @Injectable()
 export class StripePaymentGatewayService implements IPaymentGateway {
@@ -25,7 +26,7 @@ export class StripePaymentGatewayService implements IPaymentGateway {
 
   public async process(
     data: OrderPaymentPayload,
-  ): Promise<{ payment_url: string }> {
+  ): Promise<CheckoutSessionData> {
     this.logger.log('Stripe received payment to process', data);
 
     try {
@@ -51,10 +52,14 @@ export class StripePaymentGatewayService implements IPaymentGateway {
         },
       });
 
+      console.log('Stripe session::', session);
+
       this.logger.log('Stripe successfully processed payment', data);
 
       return {
-        payment_url: session.url,
+        provider: PaymentProviders.STRIPE,
+        checkout_url: session.url,
+        checkout_url_expires_at: session.expires_at,
       };
     } catch (error) {
       this.logger.error('Stripe error processing a payment', data);

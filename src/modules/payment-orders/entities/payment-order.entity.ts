@@ -30,6 +30,7 @@ export const payment_orders = pgTable('payment_orders', {
   provider_reference_id: text(),
   status: payment_order_statuses().notNull(),
   checkout_url: text(),
+  checkout_url_expires_at: timestamp(),
   amount: bigint({ mode: 'number' }).notNull(),
   currency: char({ length: 3 }).notNull(),
   receipt_url: text(),

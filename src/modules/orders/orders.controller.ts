@@ -17,6 +17,7 @@ import {
   createrOrderDtoSchema,
   createrOrderItemDtoSchema,
   OrderItemResponseDto,
+  PayOrderCheckoutResponseDto,
   PayOrderDto,
   payOrderDtoSchema,
 } from './dto';
@@ -83,10 +84,10 @@ export class OrdersController {
   async payOrder(
     @Req() req,
     @Param('order_id', new ParseUUIDPipe({ version: '4' }))
+    order_id: string,
     @Body(new ZodValidationPipe(payOrderDtoSchema))
     payOrderDto: PayOrderDto,
-    order_id: string,
-  ): Promise<{ payment_url: string }> {
+  ): Promise<PayOrderCheckoutResponseDto> {
     return await this.ordersService.payOrder(
       req.user.sub,
       order_id,
