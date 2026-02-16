@@ -52,12 +52,11 @@ export class StripePaymentGatewayService implements IPaymentGateway {
         },
       });
 
-      console.log('Stripe session::', session);
-
       this.logger.log('Stripe successfully processed payment', data);
 
       return {
         provider: PaymentProviders.STRIPE,
+        provider_reference_id: session.id,
         checkout_url: session.url,
         checkout_url_expires_at: session.expires_at,
       };

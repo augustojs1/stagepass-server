@@ -1,12 +1,5 @@
 import { Injectable } from '@nestjs/common';
-
-import {
-  compareAsc,
-  differenceInHours,
-  format,
-  isBefore,
-  parse,
-} from 'date-fns';
+import { compareAsc, differenceInHours, format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
 @Injectable()
@@ -28,13 +21,16 @@ export class DateProvider {
   }
 
   isExpired(expiresAt: string, now: Date = new Date()): boolean {
-    const expiresAtDate = parse(
-      expiresAt,
-      'yyyy-MM-dd HH:mm:ss.SSS xx',
-      new Date(),
-    );
+    console.log('expiresAt.:', expiresAt);
+    console.log('now.:', now);
 
-    return isBefore(expiresAtDate, now);
+    const expiresAtDate = new Date(expiresAt);
+
+    if (isNaN(expiresAtDate.getTime())) {
+      throw new Error('Invalid expiresAt date');
+    }
+
+    return expiresAtDate.getTime() <= now.getTime();
   }
 
   unixToTimezoneTimestamp(unixTimestamp: number, timezone: string): string {

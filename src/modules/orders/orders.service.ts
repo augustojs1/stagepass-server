@@ -393,11 +393,11 @@ export class OrdersService {
     order_id: string,
     pay_order_dto: PayOrderDto,
   ): Promise<PayOrderCheckoutResponseDto> {
+    let checkoutData: CheckoutSessionData;
+
     try {
-      // Order tem que existir
       const order = await this.findOneElseThrow(order_id);
 
-      // Caso order estiver pago retornar
       if (order.status === 'PAID') {
         const paymentOrder =
           await this.paymentOrdersService.findLastPaymentOrderByOrderBy(
@@ -436,9 +436,6 @@ export class OrdersService {
         `Init order payment via ${pay_order_dto.payment_provider} provider!`,
       );
 
-      let checkoutData: CheckoutSessionData;
-
-      // Buscar payment orders
       const paymentOrder =
         await this.paymentOrdersService.findLastPaymentOrderByOrderBy(order.id);
 
@@ -456,6 +453,7 @@ export class OrdersService {
           amount: order.total_price,
           currency: 'USD',
           provider: PaymentProviders.STRIPE,
+          provider_reference_id: checkoutData.provider_reference_id,
           status: 'PENDING',
           checkout_url: checkoutData.checkout_url,
           checkout_url_expires_at: new Date(
@@ -477,21 +475,52 @@ export class OrdersService {
           ),
         };
       } else {
+        if (
+          this.dateProvider.isExpired(
+            String(paymentOrder.checkout_url_expires_at),
+          ) &&
+          paymentOrder.status === 'PENDING'
+        ) {
+          paymentOrder.status = 'FAILED';
+
+          switch (pay_order_dto.payment_provider) {
+            case PaymentProviders.STRIPE:
+              checkoutData = await this.paymentGateway.process({
+                order_id: order.id,
+                amount: order.total_price,
+              });
+          }
+
+          await this.paymentOrdersService.updateAndCreateNewPaymentOrderTransaction(
+            checkoutData,
+            paymentOrder,
+          );
+
+          return {
+            receipt_url: null,
+            status: 'PENDING',
+            provider: checkoutData.provider,
+            checkout_url: checkoutData.checkout_url,
+            checkout_url_expires_at: this.dateProvider.unixToTimezoneTimestamp(
+              checkoutData.checkout_url_expires_at,
+              'America/Sao_Paulo',
+            ),
+          };
+        }
+
         const shouldCreateNewOrderPaymentStatuses = new Set([
           'CANCELLED',
           'FAILED',
         ]);
 
-        // Caso houver payment_orders PENDING para essa order e não expirou retornar o checkout_url dela
         if (paymentOrder.status === 'PENDING') {
           return {
             status: 'PENDING',
             receipt_url: paymentOrder.receipt_url,
-            provider: checkoutData.provider,
+            provider: PaymentProviders.STRIPE,
             checkout_url: paymentOrder.checkout_url,
-            checkout_url_expires_at: String(
-              paymentOrder.checkout_url_expires_at,
-            ),
+            checkout_url_expires_at:
+              paymentOrder.checkout_url_expires_at.toISOString(),
           };
         }
 
@@ -509,6 +538,7 @@ export class OrdersService {
             amount: order.total_price,
             currency: 'USD',
             provider: PaymentProviders.STRIPE,
+            provider_reference_id: checkoutData.provider_reference_id,
             status: 'PENDING',
             checkout_url: checkoutData.checkout_url,
             checkout_url_expires_at: new Date(
@@ -535,21 +565,10 @@ export class OrdersService {
           return {
             receipt_url: paymentOrder.receipt_url,
             status: 'SUCCEEDED',
-            provider: checkoutData.provider,
+            provider: PaymentProviders[paymentOrder.provider],
             checkout_url: null,
             checkout_url_expires_at: null,
           };
-        }
-
-        // Caso último payment_order está com checkout url expirada, marcar ela como expirada e criar uma nova
-        if (
-          this.dateProvider.isExpired(
-            String(paymentOrder.checkout_url_expires_at),
-          )
-        ) {
-          paymentOrder.status = 'FAILED';
-
-          await this.paymentOrdersService.update(paymentOrder);
         }
       }
     } catch (error) {

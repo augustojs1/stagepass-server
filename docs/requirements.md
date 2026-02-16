@@ -166,13 +166,13 @@
 - [x] The authenticated user must be able to start payment only for
       their own order.
 - [x] The order status must be `AWAITING_PAYMENT`.
-- [ ] The reservation must not be expired
-- [ ] Should be possible to create a `payment_orders` record.
-- [ ] The API must return the checkout URL.
-- [ ] The operation must be idempotent:
-  - [ ] If the order is already `PAID`, the endpoint must return
+- [x] The reservation must not be expired
+- [x] Should be possible to create a `payment_orders` record.
+- [x] The API must return the checkout URL.
+- [x] The operation must be idempotent:
+  - [x] If the order is already `PAID`, the endpoint must return
         `200 OK` without duplicating effects.
-  - [ ] If a `PENDING` payment already exists for the order and checkout URL is not expired then the
+  - [x] If a `PENDING` payment already exists for the order and checkout URL is not expired then the
         same checkout reference must be returned.
 
 ## Stripe Webhook
@@ -181,7 +181,6 @@
 `POST /payments/webhook/stripe`
 
 - [x] The webhook signature must be validated.
-- [ ] On successful payment should publish an event on the PAYMENT_SUCESS queue.
 - [ ] On successful payment should publish an event on the PAYMENT_SUCESS queue.
 - [ ] On failed payment publish an event on the PAYMENT_FAILED queue:
 
