@@ -44,7 +44,7 @@ export class PaymentOrdersService {
     checkout_session_data: CheckoutSessionData,
     payment_order: PaymentOrderEntity,
   ): Promise<void> {
-    this.drizzle.transaction(async (trx) => {
+    await this.drizzle.transaction(async (trx) => {
       await trx
         .update(schema.payment_orders)
         .set({
@@ -61,12 +61,14 @@ export class PaymentOrdersService {
         status: 'PENDING',
         checkout_url: checkout_session_data.checkout_url,
         checkout_url_expires_at: new Date(
-          this.dateProvider.unixToTimezoneTimestamp(
+          this.dateProvider.unixToTimestampTz(
             checkout_session_data.checkout_url_expires_at,
             'America/Sao_Paulo',
           ),
         ),
       });
     });
+
+    return;
   }
 }

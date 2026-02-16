@@ -388,13 +388,55 @@ export class OrdersService {
     }
   }
 
+  private async createCheckout(
+    order: { id: string; total_price: number },
+    provider: PaymentProviders,
+  ) {
+    switch (provider) {
+      case PaymentProviders.STRIPE:
+        return this.paymentGateway.process({
+          order_id: order.id,
+          amount: order.total_price,
+        });
+      default:
+        throw new UnprocessableEntityException('Unsupported payment provider');
+    }
+  }
+
+  private createPendingResponse(
+    checkout: CheckoutSessionData,
+  ): PayOrderCheckoutResponseDto {
+    return {
+      receipt_url: null,
+      status: 'PENDING',
+      provider: checkout.provider,
+      checkout_url: checkout.checkout_url,
+      checkout_url_expires_at: this.toCheckoutExpiresAtString(
+        checkout.checkout_url_expires_at,
+        'America/Sao_Paulo',
+      ),
+    };
+  }
+
+  private toCheckoutExpiresAtDate(
+    unixSeconds: number,
+    tz = 'America/Sao_Paulo',
+  ): Date {
+    return new Date(this.dateProvider.unixToTimestampTz(unixSeconds, tz));
+  }
+
+  private toCheckoutExpiresAtString(
+    unixSeconds: number,
+    tz = 'America/Sao_Paulo',
+  ): string {
+    return this.dateProvider.unixToTimestampTz(unixSeconds, tz);
+  }
+
   async payOrder(
     user_id: string,
     order_id: string,
     pay_order_dto: PayOrderDto,
   ): Promise<PayOrderCheckoutResponseDto> {
-    let checkoutData: CheckoutSessionData;
-
     try {
       const order = await this.findOneElseThrow(order_id);
 
@@ -440,13 +482,10 @@ export class OrdersService {
         await this.paymentOrdersService.findLastPaymentOrderByOrderBy(order.id);
 
       if (!paymentOrder) {
-        switch (pay_order_dto.payment_provider) {
-          case PaymentProviders.STRIPE:
-            checkoutData = await this.paymentGateway.process({
-              order_id: order.id,
-              amount: order.total_price,
-            });
-        }
+        const checkoutData = await this.createCheckout(
+          order,
+          PaymentProviders[pay_order_dto.payment_provider],
+        );
 
         await this.paymentOrdersService.create({
           order_id: order.id,
@@ -456,121 +495,79 @@ export class OrdersService {
           provider_reference_id: checkoutData.provider_reference_id,
           status: 'PENDING',
           checkout_url: checkoutData.checkout_url,
-          checkout_url_expires_at: new Date(
-            this.dateProvider.unixToTimezoneTimestamp(
-              checkoutData.checkout_url_expires_at,
-              'America/Sao_Paulo',
-            ),
-          ),
-        });
-
-        return {
-          receipt_url: null,
-          status: 'PENDING',
-          provider: checkoutData.provider,
-          checkout_url: checkoutData.checkout_url,
-          checkout_url_expires_at: this.dateProvider.unixToTimezoneTimestamp(
+          checkout_url_expires_at: this.toCheckoutExpiresAtDate(
             checkoutData.checkout_url_expires_at,
             'America/Sao_Paulo',
           ),
-        };
-      } else {
-        if (
-          this.dateProvider.isExpired(
-            String(paymentOrder.checkout_url_expires_at),
-          ) &&
-          paymentOrder.status === 'PENDING'
-        ) {
-          paymentOrder.status = 'FAILED';
+        });
 
-          switch (pay_order_dto.payment_provider) {
-            case PaymentProviders.STRIPE:
-              checkoutData = await this.paymentGateway.process({
-                order_id: order.id,
-                amount: order.total_price,
-              });
-          }
-
-          await this.paymentOrdersService.updateAndCreateNewPaymentOrderTransaction(
-            checkoutData,
-            paymentOrder,
-          );
-
-          return {
-            receipt_url: null,
-            status: 'PENDING',
-            provider: checkoutData.provider,
-            checkout_url: checkoutData.checkout_url,
-            checkout_url_expires_at: this.dateProvider.unixToTimezoneTimestamp(
-              checkoutData.checkout_url_expires_at,
-              'America/Sao_Paulo',
-            ),
-          };
-        }
-
-        const shouldCreateNewOrderPaymentStatuses = new Set([
-          'CANCELLED',
-          'FAILED',
-        ]);
-
-        if (paymentOrder.status === 'PENDING') {
-          return {
-            status: 'PENDING',
-            receipt_url: paymentOrder.receipt_url,
-            provider: PaymentProviders.STRIPE,
-            checkout_url: paymentOrder.checkout_url,
-            checkout_url_expires_at:
-              paymentOrder.checkout_url_expires_at.toISOString(),
-          };
-        }
-
-        if (shouldCreateNewOrderPaymentStatuses.has(paymentOrder.status)) {
-          switch (pay_order_dto.payment_provider) {
-            case PaymentProviders.STRIPE:
-              checkoutData = await this.paymentGateway.process({
-                order_id: order.id,
-                amount: order.total_price,
-              });
-          }
-
-          await this.paymentOrdersService.create({
-            order_id: order.id,
-            amount: order.total_price,
-            currency: 'USD',
-            provider: PaymentProviders.STRIPE,
-            provider_reference_id: checkoutData.provider_reference_id,
-            status: 'PENDING',
-            checkout_url: checkoutData.checkout_url,
-            checkout_url_expires_at: new Date(
-              this.dateProvider.unixToTimezoneTimestamp(
-                checkoutData.checkout_url_expires_at,
-                'America/Sao_Paulo',
-              ),
-            ),
-          });
-
-          return {
-            receipt_url: null,
-            status: 'PENDING',
-            provider: checkoutData.provider,
-            checkout_url: checkoutData.checkout_url,
-            checkout_url_expires_at: this.dateProvider.unixToTimezoneTimestamp(
-              checkoutData.checkout_url_expires_at,
-              'America/Sao_Paulo',
-            ),
-          };
-        }
-
-        if (paymentOrder.status === 'SUCCEEDED') {
-          return {
-            receipt_url: paymentOrder.receipt_url,
-            status: 'SUCCEEDED',
-            provider: PaymentProviders[paymentOrder.provider],
-            checkout_url: null,
-            checkout_url_expires_at: null,
-          };
-        }
+        return this.createPendingResponse(checkoutData);
       }
+
+      if (
+        paymentOrder.status === 'PENDING' &&
+        this.dateProvider.isExpired(
+          String(paymentOrder.checkout_url_expires_at),
+        )
+      ) {
+        paymentOrder.status = 'FAILED';
+
+        const checkoutData = await this.createCheckout(
+          order,
+          PaymentProviders[pay_order_dto.payment_provider],
+        );
+
+        await this.paymentOrdersService.updateAndCreateNewPaymentOrderTransaction(
+          checkoutData,
+          paymentOrder,
+        );
+
+        return this.createPendingResponse(checkoutData);
+      }
+
+      if (paymentOrder.status === 'PENDING') {
+        return this.pendingResponseFromPaymentOrder(paymentOrder);
+      }
+
+      const shouldCreateNewOrderPaymentStatuses = new Set([
+        'CANCELLED',
+        'FAILED',
+      ]);
+
+      if (shouldCreateNewOrderPaymentStatuses.has(paymentOrder.status)) {
+        const checkoutData = await this.createCheckout(
+          order,
+          PaymentProviders[pay_order_dto.payment_provider],
+        );
+
+        await this.paymentOrdersService.create({
+          order_id: order.id,
+          amount: order.total_price,
+          currency: 'USD',
+          provider: PaymentProviders.STRIPE,
+          provider_reference_id: checkoutData.provider_reference_id,
+          status: 'PENDING',
+          checkout_url: checkoutData.checkout_url,
+          checkout_url_expires_at: this.toCheckoutExpiresAtDate(
+            checkoutData.checkout_url_expires_at,
+            'America/Sao_Paulo',
+          ),
+        });
+
+        return this.createPendingResponse(checkoutData);
+      }
+
+      if (paymentOrder.status === 'SUCCEEDED') {
+        return {
+          receipt_url: paymentOrder.receipt_url,
+          status: 'SUCCEEDED',
+          provider: PaymentProviders[paymentOrder.provider],
+          checkout_url: null,
+          checkout_url_expires_at: null,
+        };
+      }
+
+      throw new InternalServerErrorException('Unhandled payment order status');
     } catch (error) {
       const e = error as Error;
 
@@ -579,11 +576,22 @@ export class OrdersService {
         e?.stack,
       );
 
-      if (error instanceof HttpException) {
-        throw error;
-      }
+      if (error instanceof HttpException) throw error;
 
       throw new InternalServerErrorException('Failed to pay order');
     }
+  }
+
+  private pendingResponseFromPaymentOrder(
+    paymentOrder: any,
+  ): PayOrderCheckoutResponseDto {
+    return {
+      status: 'PENDING',
+      receipt_url: paymentOrder.receipt_url,
+      provider: PaymentProviders.STRIPE,
+      checkout_url: paymentOrder.checkout_url,
+      checkout_url_expires_at:
+        paymentOrder.checkout_url_expires_at.toISOString(),
+    };
   }
 }

@@ -21,19 +21,12 @@ export class DateProvider {
   }
 
   isExpired(expiresAt: string, now: Date = new Date()): boolean {
-    console.log('expiresAt.:', expiresAt);
-    console.log('now.:', now);
-
     const expiresAtDate = new Date(expiresAt);
-
-    if (isNaN(expiresAtDate.getTime())) {
-      throw new Error('Invalid expiresAt date');
-    }
 
     return expiresAtDate.getTime() <= now.getTime();
   }
 
-  unixToTimezoneTimestamp(unixTimestamp: number, timezone: string): string {
+  unixToTimestampTz(unixTimestamp: number, timezone: string): string {
     const date = new Date(unixTimestamp * 1000);
 
     const zonedDate = toZonedTime(date, timezone);
