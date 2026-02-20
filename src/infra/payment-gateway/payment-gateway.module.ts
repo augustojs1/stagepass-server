@@ -1,17 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { IPaymentGateway } from '@/infra/payment-gateway/ipayment-gateway.interface';
-import { StripePaymentGatewayService } from '@/infra/payment-gateway/impl';
+import { IPaymentGateway } from '@/infra/payment-gateway/interfaces/ipayment-gateway.interface';
+import { StripeService } from './impl/stripe/stripe.service';
 
 @Module({
   providers: [
     {
       provide: IPaymentGateway,
-      useClass: StripePaymentGatewayService,
+      useClass: StripeService,
     },
+    StripeService,
   ],
-  exports: [IPaymentGateway],
+  exports: [IPaymentGateway, StripeService],
   imports: [ConfigModule],
 })
 export class PaymentGatewayModule {}

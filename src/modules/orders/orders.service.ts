@@ -28,10 +28,10 @@ import { OrdersMapper } from './mappers';
 import { OrderItemEntity, OrdersEntity } from './models';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
-import { IPaymentGateway } from '@/infra/payment-gateway/ipayment-gateway.interface';
+import { IPaymentGateway } from '@/infra/payment-gateway/interfaces/ipayment-gateway.interface';
 import { PaymentOrdersService } from '../payment-orders/payment-orders.service';
 import { PaymentProviders } from '../payment-orders/enum';
-import { CheckoutSessionData } from '@/infra/payment-gateway/models';
+import { CheckoutSessionData } from '@/infra/payment-gateway/impl/stripe/models';
 
 @Injectable()
 export class OrdersService {

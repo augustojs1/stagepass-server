@@ -2,15 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
-import { IPaymentGateway } from '@/infra/payment-gateway/ipayment-gateway.interface';
-import { CheckoutSessionData, OrderPaymentPayload } from '../models';
+import { IPaymentGateway } from '@/infra/payment-gateway/interfaces/ipayment-gateway.interface';
+import { CheckoutSessionData, OrderPaymentPayload } from './models';
 import { PaymentProviders } from '@/modules/payment-orders/enum';
 
 @Injectable()
-export class StripePaymentGatewayService implements IPaymentGateway {
-  private readonly logger: Logger = new Logger(
-    StripePaymentGatewayService.name,
-  );
+export class StripeService implements IPaymentGateway {
+  private readonly logger: Logger = new Logger(StripeService.name);
   private readonly stripeClient: Stripe;
 
   constructor(private readonly configService: ConfigService) {
@@ -65,4 +63,44 @@ export class StripePaymentGatewayService implements IPaymentGateway {
       throw error;
     }
   }
+
+  async handleEvent(body: any, sig: string | string[]): Promise<void> {
+    const event = this.stripeClient.webhooks.constructEvent(
+      body,
+      sig,
+      this.configService.get<string>('stripe.webhook_key'),
+    );
+
+    console.log('Stripe event.:', event);
+
+    // Guardar webhooks na tabela webhook_events
+
+    // CASE: 'checkout.session.completed'
+    // Localizar payment_order pelo provider_reference_id (session.id / payment_intent_id)
+    // marca payment_orders como SUCCEEDED
+    // marca orders como PAID
+    // Desativar as reservas dessa order
+    // Diminuir o quantity dos event tickets
+    // Gerar tickets
+    // obs: tentar guardar o receipt_url que vem de charge.updated
+    // etc.
+
+    // CASE: Falha
+    // Webhook chega → marca payment_orders como FAILED
+    // order continua AWAITING_PAYMENT pra permitir retry até expirar
+
+    // if (event.type === 'checkout.session.completed') {
+
+    //   const session = event.data.object;
+
+    //   const orderId = session.metadata?.orderId;
+    //   const status = session.payment_status;
+
+    //   if (status === 'paid') {
+    //   }
+    // }
+  }
+
+  async handleSuccessEvent(event: any): Promise<void> {}
+  async handleFailedEvent(event: any): Promise<void> {}
 }

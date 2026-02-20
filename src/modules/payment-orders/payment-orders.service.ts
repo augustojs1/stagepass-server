@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { PaymentOrdersRepository } from './payment-orders.repository';
 import { InsertPaymentOrdersParams } from './models/insert-payment-orders-params.model';
 import { PaymentOrderEntity } from './models/payment-order-entity.model';
-import { CheckoutSessionData } from '@/infra/payment-gateway/models';
+import { CheckoutSessionData } from '@/infra/payment-gateway/impl/stripe/models';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
 import { PaymentProviders } from './enum';
