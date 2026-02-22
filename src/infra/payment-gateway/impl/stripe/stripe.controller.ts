@@ -13,7 +13,5 @@ export class StripeController {
     const sig = req.headers['stripe-signature'];
 
     await this.StripeService.handleEvent(req.body, sig);
-
-    return;
   }
 }

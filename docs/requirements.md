@@ -182,7 +182,7 @@
 
 - [x] The webhook signature must be validated.
 - [ ] On successful payment should publish an event on the PAYMENT_SUCESS queue.
-- [ ] On failed payment publish an event on the PAYMENT_FAILED queue:
+- [ ] On failed payment publish an event on the PAYMENT_FAILED queue
 
 ## #Email
 

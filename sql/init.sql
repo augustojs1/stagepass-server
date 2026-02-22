@@ -205,6 +205,32 @@ CREATE INDEX payment_order_id_and_created_at_idx ON payment_orders(order_id, cre
 
 CREATE INDEX payment_order_status_and_id_idx ON payment_orders(order_id, status);
 
+create type webhook_process_statuses AS enum ('PROCESSING', 'PROCESSED', 'FAILED_TO_PROCESS');
+
+create type webhook_payment_statuses as enum ('PAID', 'FAILED');
+
+-- payment_gateway_webhook_events
+create table payment_gateway_webhook_events (
+	id UUID primary key default gen_random_uuid(),
+	provider_reference_id text unique not null,
+	order_id UUID not null references orders(id),
+	provider payment_providers not NULL,
+	process webhook_process_statuses not null,
+	amount_total BIGINT,
+	payment_status webhook_payment_statuses not NULL,
+	event_created_at BIGINT not NULL,
+	currency VARCHAR(10) not null,
+	expires_at BIGINT,
+	receipt_url text,
+	error_code TEXT,
+	error_decline_code TEXT,
+  error_message TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX provider_reference_id_idx ON payment_gateway_webhook_events(provider_reference_id);
+
 -- countries seed
 INSERT INTO countries (name, code) VALUES
 ('Afghanistan', 'AF'),

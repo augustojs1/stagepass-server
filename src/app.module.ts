@@ -13,6 +13,7 @@ import { AddressModule } from './modules/address/address.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { WebhooksModule } from './infra/webhooks/webhooks.module';
 import { PaymentOrdersModule } from './modules/payment-orders/payment-orders.module';
+import { MessagesModule } from './infra/messages/messages.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PaymentOrdersModule } from './modules/payment-orders/payment-orders.mod
     OrdersModule,
     WebhooksModule,
     PaymentOrdersModule,
+    MessagesModule,
   ],
   providers: [
     {
