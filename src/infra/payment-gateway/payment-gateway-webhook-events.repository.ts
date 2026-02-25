@@ -15,6 +15,9 @@ export class PaymentGatewayWebhookEventsRepository {
   async insert(data: InsertPaymentGatewayWebhookEventParams): Promise<void> {
     await this.drizzle
       .insert(schema.payment_gateway_webhook_events)
-      .values(data);
+      .values(data)
+      .onConflictDoNothing({
+        target: [schema.payment_gateway_webhook_events.provider_reference_id],
+      });
   }
 }

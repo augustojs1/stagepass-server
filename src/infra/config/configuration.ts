@@ -32,4 +32,10 @@ export const configuration = () => ({
     secret_key: process.env.STRIPE_SECRET_KEY,
     webhook_key: process.env.STRIPE_WEBHOOK_KEY,
   },
+  rmq: {
+    url: process.env.RMQ_URL,
+    queue_payment_failed: process.env.RMQ_QUEUE_PAYMENT_FAILED,
+    queue_payment_succes: process.env.RMQ_QUEUE_PAYMENT_SUCCESS,
+    queue_ticket_generate: process.env.RMQ_QUEUE_TICKET_GENERATE,
+  },
 });

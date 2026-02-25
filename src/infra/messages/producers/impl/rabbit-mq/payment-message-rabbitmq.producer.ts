@@ -3,6 +3,7 @@ import { ClientProxy } from '@nestjs/microservices';
 
 import { IPaymentMessageProducer } from '@/infra/messages/producers/interfaces/message-producer.interface';
 import { MessageQueues } from '@/infra/messages/producers/enums';
+import { FailedPaymentEventPayload } from '@/infra/payment-gateway/models/failed-payment-event.model';
 
 @Injectable()
 export class PaymentMessageRabbitMqProducer implements IPaymentMessageProducer {
@@ -21,7 +22,7 @@ export class PaymentMessageRabbitMqProducer implements IPaymentMessageProducer {
     );
   }
 
-  emitFailed(payload: any): void {
+  emitFailed(payload: FailedPaymentEventPayload): void {
     this.rabbitMqClient.emit(MessageQueues.PAYMENT_FAILED, payload);
 
     this.logger.log(

@@ -169,7 +169,7 @@ export class StripeService implements IPaymentGateway {
 
     await this.paymentGatewayWebhookEventsRepository.insert({
       order_id: orderId,
-      provider_reference_id: session.payment_details.order_reference,
+      provider_reference_id: session.id,
       provider: 'STRIPE',
       process: 'PROCESSING',
       amount_total: session.amount,
@@ -188,8 +188,10 @@ export class StripeService implements IPaymentGateway {
     );
 
     this.paymentMessageProducer.emitFailed({
-      orderId,
-      event,
+      order_id: orderId,
+      error_code: intent.last_payment_error.code,
+      error_decline_code: intent.last_payment_error.decline_code,
+      error_message: intent.last_payment_error.message,
     });
   }
 }

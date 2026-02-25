@@ -4,6 +4,9 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 
 import { IPaymentMessageProducer } from './producers/interfaces/message-producer.interface';
 import { PaymentMessageRabbitMqProducer } from './producers/impl/rabbit-mq/payment-message-rabbitmq.producer';
+import { configuration } from '../config/configuration';
+
+const env_variables = configuration();
 
 @Module({
   imports: [
@@ -13,12 +16,11 @@ import { PaymentMessageRabbitMqProducer } from './producers/impl/rabbit-mq/payme
         name: 'payment_queue',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
-          queue: 'q.payment.failed',
+          urls: [env_variables.rmq.url],
+          queue: env_variables.rmq.queue_payment_failed,
           queueOptions: {
             durable: true,
           },
-          exchange: 'ex.payments',
           prefetchCount: 10,
         },
       },
