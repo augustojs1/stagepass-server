@@ -107,17 +107,6 @@ export class StripeService implements IPaymentGateway {
   async handleSuccessEvent(
     event: Stripe.CheckoutSessionCompletedEvent,
   ): Promise<void> {
-    // Guardar webhooks na tabela webhook_events
-    // CASE: 'checkout.session.completed'
-    // Localizar payment_order pelo provider_reference_id (session.id / payment_intent_id)
-    // marca payment_orders como SUCCEEDED
-    // marca orders como PAID
-    // Desativar as reservas dessa order
-    // Diminuir o quantity dos event tickets
-    // Gerar tickets
-    // obs: tentar guardar o receipt_url que vem de charge.updated
-    // etc.
-
     const session = event.data.object;
 
     const orderId = session.metadata?.orderId;
@@ -150,7 +139,8 @@ export class StripeService implements IPaymentGateway {
 
       this.paymentMessageProducer.emitSuccess({
         order_id: orderId,
-        session: session,
+        provider_reference_id: session.id,
+        receipt_url: charges.data[0].receipt_url,
       });
     }
   }
@@ -158,10 +148,6 @@ export class StripeService implements IPaymentGateway {
   async handleFailedEvent(
     event: Stripe.PaymentIntentPaymentFailedEvent,
   ): Promise<void> {
-    // CASE: Falha
-    // Webhook chega → marca payment_orders como FAILED
-    // order continua AWAITING_PAYMENT pra permitir retry até expirar
-
     const session = event.data.object;
     const intent = await this.stripeClient.paymentIntents.retrieve(session.id);
 
@@ -169,7 +155,7 @@ export class StripeService implements IPaymentGateway {
 
     await this.paymentGatewayWebhookEventsRepository.insert({
       order_id: orderId,
-      provider_reference_id: session.id,
+      provider_reference_id: intent.payment_details.order_reference,
       provider: 'STRIPE',
       process: 'PROCESSING',
       amount_total: session.amount,
@@ -189,6 +175,7 @@ export class StripeService implements IPaymentGateway {
 
     this.paymentMessageProducer.emitFailed({
       order_id: orderId,
+      provider_reference_id: intent.payment_details.order_reference,
       error_code: intent.last_payment_error.code,
       error_decline_code: intent.last_payment_error.decline_code,
       error_message: intent.last_payment_error.message,
