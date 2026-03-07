@@ -231,6 +231,20 @@ create table payment_gateway_webhook_events (
 
 CREATE INDEX provider_reference_id_idx ON payment_gateway_webhook_events(provider_reference_id);
 
+-- tickets
+create table tickets (
+	id UUID primary key default gen_random_uuid(),
+	order_id UUID references orders(id) on delete set null,
+	owner_id UUID references users(id) on delete set null,
+	event_ticket_id UUID references event_tickets(id) on delete set null,
+	file_url text,
+	checked_in BOOLEAN default false,
+	checked_in_at TIMESTAMPTZ,
+	code  VARCHAR(50) UNIQUE not null,
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- countries seed
 INSERT INTO countries (name, code) VALUES
 ('Afghanistan', 'AF'),
