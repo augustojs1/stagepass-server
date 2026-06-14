@@ -191,3 +191,39 @@
 - [ ] Users should be able to receive their bought tickets in their email
 - [ ] Ticket delivery emails should include the QR Code / PDF attachment.
 - [ ] Failed payments should trigger a notification email.
+
+## #Async Processing
+
+- [x] Business logic to be processed async should be publish to the domain specific queue.
+- [x] Consumer services must process message and mark it as ACK.
+  - [x] If message failed to process, it must be published to the domain specific retry queue.
+    - [x] Message sent to retry queue should have headers with TTL and retry count.
+  - [x] If message retry count exceeds maximum retries count, message should be published to a dead letter queue.
+- [ ] Create logic to handle DLQ messages.
+
+- [x] Async processing flow should be as follow:
+
+  Producer
+  │
+  ▼
+  Main Exchange
+  │
+  ▼
+  Main Queue
+  │
+  ├── Success → ACK
+  │
+  └── Failure
+  │
+  ▼
+  Retry Queue
+  │
+  (TTL)
+  │
+  ▼
+  Main Queue
+  │
+  (Retry until limit)
+  │
+  ▼
+  Dead Letter Queue (DLQ)

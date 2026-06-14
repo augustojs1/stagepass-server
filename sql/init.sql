@@ -195,6 +195,7 @@ CREATE TABLE payment_orders (
   receipt_url TEXT,
   error_code TEXT,
   error_message TEXT,
+	checkout_url_expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
