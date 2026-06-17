@@ -235,7 +235,7 @@ CREATE INDEX provider_reference_id_idx ON payment_gateway_webhook_events(provide
 -- tickets
 create table tickets (
 	id UUID primary key default gen_random_uuid(),
-	order_id UUID references orders(id) on delete set null,
+	order_item_id UUID references order_item(id) on delete set null,
 	owner_id UUID references users(id) on delete set null,
 	event_ticket_id UUID references event_tickets(id) on delete set null,
 	file_url text,
