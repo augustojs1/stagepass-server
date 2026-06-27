@@ -381,7 +381,7 @@ values
                 <table cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px;">
                   <tr>
                     <td style="background-color:#6366f1; border-radius:8px;">
-                      <a href="{{order_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
+                      <a href="{{receipt_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
                         View order details
                       </a>
                     </td>
@@ -514,7 +514,7 @@ values
                               Reason
                             </p>
                             <p style="margin:0; font-size:15px; color:#111827;">
-                              {{failure_reason}}
+                              {{error_message}}
                             </p>
                           </td>
                         </tr>
@@ -530,7 +530,7 @@ values
                 <table cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px;">
                   <tr>
                     <td style="background-color:#6366f1; border-radius:8px;">
-                      <a href="{{payment_retry_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
+                      <a href="{{checkout_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
                         Try payment again
                       </a>
                     </td>
@@ -701,7 +701,7 @@ values
                 <table cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px;">
                   <tr>
                     <td style="background-color:#6366f1; border-radius:8px;">
-                      <a href="{{order_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
+                      <a href="{{receipt_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
                         View order details
                       </a>
                     </td>
