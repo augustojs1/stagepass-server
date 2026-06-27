@@ -246,6 +246,494 @@ create table tickets (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- email_templates
+create type email_template_type AS enum ('TICKETS_AVAILABLE', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED');
+
+CREATE TABLE email_templates (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	type email_template_type UNIQUE NOT NULL,
+	html TEXT NOT NULL,
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+insert into 
+	email_templates (type, html) 
+values
+	(
+	'PAYMENT_SUCCESS',
+	'<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Payment confirmed</title>
+  </head>
+
+  <body style="margin:0; padding:0; background-color:#f4f3fa; font-family:Arial, Helvetica, sans-serif; color:#111827;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f4f3fa; padding:32px 0;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="width:600px; max-width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+            
+            <tr>
+              <td style="background-color:#111827; padding:28px 32px;">
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                  <tr>
+                    <td style="font-size:22px; font-weight:700; color:#ffffff;">
+                      Stage<span style="color:#6366f1;">Pass</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:40px 32px 24px 32px; text-align:center;">
+                <div style="display:inline-block; background-color:#ecfdf5; color:#047857; font-size:14px; font-weight:700; padding:8px 14px; border-radius:999px; margin-bottom:20px;">
+                  Payment confirmed
+                </div>
+
+                <h1 style="margin:0; font-size:28px; line-height:36px; color:#111827;">
+                  Your order has been confirmed!
+                </h1>
+
+                <p style="margin:16px 0 0 0; font-size:16px; line-height:24px; color:#4b5563;">
+                  Hi, {{customer_name}}. We have received the payment confirmation for your order.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:8px 32px 32px 32px;">
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:1px solid #e5e7eb; border-radius:10px;">
+                  <tr>
+                    <td style="padding:20px;">
+                      <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                        Event
+                      </p>
+                      <p style="margin:0; font-size:18px; color:#111827; font-weight:700;">
+                        {{event_name}}
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:0 20px;">
+                      <hr style="border:none; border-top:1px solid #e5e7eb; margin:0;" />
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:20px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Order
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              #{{order_id}}
+                            </p>
+                          </td>
+
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Amount paid
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              {{order_total}}
+                            </p>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td colspan="2" style="height:20px;"></td>
+                        </tr>
+
+                        <tr>
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Event date
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              {{event_date}}
+                            </p>
+                          </td>
+
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Tickets
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              {{tickets_count}} ticket(s)
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:24px 0 0 0; font-size:15px; line-height:24px; color:#4b5563;">
+                  We are preparing your tickets. Once they are generated, you will receive another email with the ticket files attached.
+                </p>
+
+                <table cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px;">
+                  <tr>
+                    <td style="background-color:#6366f1; border-radius:8px;">
+                      <a href="{{order_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
+                        View order details
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="background-color:#111827; padding:28px 32px; text-align:center;">
+                <p style="margin:0; font-size:13px; line-height:20px; color:#9ca3af;">
+                  This is an automated email. Please do not reply.
+                </p>
+                <p style="margin:8px 0 0 0; font-size:13px; color:#9ca3af;">
+                  © {{current_year}} StagePass. All rights reserved.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+'
+	),
+	(
+	'PAYMENT_FAILED',
+	' <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Payment failed</title>
+  </head>
+
+  <body style="margin:0; padding:0; background-color:#f4f3fa; font-family:Arial, Helvetica, sans-serif; color:#111827;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f4f3fa; padding:32px 0;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="width:600px; max-width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+            
+            <tr>
+              <td style="background-color:#111827; padding:28px 32px;">
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                  <tr>
+                    <td style="font-size:22px; font-weight:700; color:#ffffff;">
+                      Stage<span style="color:#6366f1;">Pass</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:40px 32px 24px 32px; text-align:center;">
+                <div style="display:inline-block; background-color:#fef2f2; color:#b91c1c; font-size:14px; font-weight:700; padding:8px 14px; border-radius:999px; margin-bottom:20px;">
+                  Payment failed
+                </div>
+
+                <h1 style="margin:0; font-size:28px; line-height:36px; color:#111827;">
+                  We could not confirm your payment
+                </h1>
+
+                <p style="margin:16px 0 0 0; font-size:16px; line-height:24px; color:#4b5563;">
+                  Hi, {{customer_name}}. There was a problem while processing the payment for your order.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:8px 32px 32px 32px;">
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:1px solid #e5e7eb; border-radius:10px;">
+                  <tr>
+                    <td style="padding:20px;">
+                      <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                        Event
+                      </p>
+                      <p style="margin:0; font-size:18px; color:#111827; font-weight:700;">
+                        {{event_name}}
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:0 20px;">
+                      <hr style="border:none; border-top:1px solid #e5e7eb; margin:0;" />
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:20px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Order
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              #{{order_id}}
+                            </p>
+                          </td>
+
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Status
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#b91c1c; font-weight:700;">
+                              {{payment_status}}
+                            </p>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td colspan="2" style="height:20px;"></td>
+                        </tr>
+
+                        <tr>
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Amount
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              {{order_total}}
+                            </p>
+                          </td>
+
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Reason
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              {{failure_reason}}
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:24px 0 0 0; font-size:15px; line-height:24px; color:#4b5563;">
+                  No tickets were issued for this order. You can try the payment again or choose another payment method.
+                </p>
+
+                <table cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px;">
+                  <tr>
+                    <td style="background-color:#6366f1; border-radius:8px;">
+                      <a href="{{payment_retry_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
+                        Try payment again
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:24px 0 0 0; font-size:13px; line-height:20px; color:#6b7280;">
+                  If you believe you were charged incorrectly, please contact support and provide your order number.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="background-color:#111827; padding:28px 32px; text-align:center;">
+                <p style="margin:0; font-size:13px; line-height:20px; color:#9ca3af;">
+                  This is an automated email. Please do not reply.
+                </p>
+                <p style="margin:8px 0 0 0; font-size:13px; color:#9ca3af;">
+                  © {{current_year}} StagePass. All rights reserved.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+'
+	),
+	(
+	'TICKETS_AVAILABLE',
+	' <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your tickets are ready</title>
+  </head>
+
+  <body style="margin:0; padding:0; background-color:#f4f3fa; font-family:Arial, Helvetica, sans-serif; color:#111827;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f4f3fa; padding:32px 0;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="width:600px; max-width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+            
+            <tr>
+              <td style="background-color:#111827; padding:28px 32px;">
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                  <tr>
+                    <td style="font-size:22px; font-weight:700; color:#ffffff;">
+                      Stage<span style="color:#6366f1;">Pass</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:40px 32px 24px 32px; text-align:center;">
+                <div style="display:inline-block; background-color:#eef2ff; color:#4f46e5; font-size:14px; font-weight:700; padding:8px 14px; border-radius:999px; margin-bottom:20px;">
+                  Tickets available
+                </div>
+
+                <h1 style="margin:0; font-size:28px; line-height:36px; color:#111827;">
+                  Your tickets are ready!
+                </h1>
+
+                <p style="margin:16px 0 0 0; font-size:16px; line-height:24px; color:#4b5563;">
+                  Hi, {{customer_name}}. Your tickets for the event have been generated successfully and are attached to this email.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:8px 32px 32px 32px;">
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:1px solid #e5e7eb; border-radius:10px;">
+                  <tr>
+                    <td style="padding:20px;">
+                      <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                        Event
+                      </p>
+                      <p style="margin:0; font-size:20px; color:#111827; font-weight:700;">
+                        {{event_name}}
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:0 20px;">
+                      <hr style="border:none; border-top:1px solid #e5e7eb; margin:0;" />
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:20px;">
+                      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Date and time
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              {{event_date}}
+                            </p>
+                          </td>
+
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Order
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              #{{order_id}}
+                            </p>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td colspan="2" style="height:20px;"></td>
+                        </tr>
+
+                        <tr>
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Location
+                            </p>
+                            <p style="margin:0; font-size:15px; line-height:22px; color:#111827;">
+                              {{event_location}}
+                            </p>
+                          </td>
+
+                          <td width="50%" style="vertical-align:top;">
+                            <p style="margin:0 0 6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; font-weight:700;">
+                              Quantity
+                            </p>
+                            <p style="margin:0; font-size:15px; color:#111827;">
+                              {{tickets_count}} ticket(s)
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px; background-color:#f9fafb; border-radius:10px;">
+                  <tr>
+                    <td style="padding:20px;">
+                      <h2 style="margin:0 0 12px 0; font-size:18px; color:#111827;">
+                        How to use your ticket
+                      </h2>
+
+                      <p style="margin:0 0 10px 0; font-size:15px; line-height:24px; color:#4b5563;">
+                        1. Open the PDF file attached to this email.
+                      </p>
+
+                      <p style="margin:0 0 10px 0; font-size:15px; line-height:24px; color:#4b5563;">
+                        2. Present the QR Code at the event entrance.
+                      </p>
+
+                      <p style="margin:0; font-size:15px; line-height:24px; color:#4b5563;">
+                        3. Keep the ticket readable and do not share it with other people.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <table cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px;">
+                  <tr>
+                    <td style="background-color:#6366f1; border-radius:8px;">
+                      <a href="{{order_url}}" style="display:inline-block; padding:14px 22px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none;">
+                        View order details
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:24px 0 0 0; font-size:13px; line-height:20px; color:#6b7280;">
+                  Important: each ticket has a unique QR Code. Once it is validated at the entrance, it cannot be used again.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="background-color:#111827; padding:28px 32px; text-align:center;">
+                <p style="margin:0; font-size:13px; line-height:20px; color:#9ca3af;">
+                  This is an automated email. Please do not reply.
+                </p>
+                <p style="margin:8px 0 0 0; font-size:13px; color:#9ca3af;">
+                  © {{current_year}} StagePass. All rights reserved.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+'
+	);
+
 -- countries seed
 INSERT INTO countries (name, code) VALUES
 ('Afghanistan', 'AF'),
