@@ -16,6 +16,7 @@ export class EventsEntity {
     x: number;
     y: number;
   };
+  sales_starts_at: Date;
   starts_at: Date;
   ends_at: Date;
   updated_at: Date;

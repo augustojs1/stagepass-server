@@ -16,6 +16,7 @@ export class CreateEventData {
     x: number;
     y: number;
   };
+  sales_starts_at: Date;
   starts_at: Date;
   ends_at: Date;
 }

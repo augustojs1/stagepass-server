@@ -60,16 +60,28 @@ export class EventsService {
     user_id: string,
     createEventDto: CreateEventDto,
   ): Promise<CreateEventResponseDto> {
-    await this.categoriesService.findOneElseThrow(
-      createEventDto.event_category_id,
+    const now = new Date();
+
+    const isSalesStartsAtAfutureDate = this.dateProvider.isAfter(
+      now,
+      createEventDto.sales_starts_at,
     );
 
-    const existentEvent = await this.eventsRepository.findByName(
-      createEventDto.name,
+    if (!isSalesStartsAtAfutureDate) {
+      throw new BadRequestException(
+        'Sales starts at date should not be before now date.',
+      );
+    }
+
+    const isSalesStartsAtBeforeEventStartsAt = this.dateProvider.isAfter(
+      createEventDto.sales_starts_at,
+      createEventDto.starts_at,
     );
 
-    if (existentEvent) {
-      throw new ConflictException('Event name already in use!');
+    if (!isSalesStartsAtBeforeEventStartsAt) {
+      throw new BadRequestException(
+        'Sales starts at date should not be after starts at date.',
+      );
     }
 
     const isStartsAtBeforeEndsAt = this.dateProvider.isAfter(
@@ -81,6 +93,18 @@ export class EventsService {
       throw new BadRequestException(
         'Starts at date should not be before ends at date.',
       );
+    }
+
+    await this.categoriesService.findOneElseThrow(
+      createEventDto.event_category_id,
+    );
+
+    const existentEvent = await this.eventsRepository.findByName(
+      createEventDto.name,
+    );
+
+    if (existentEvent) {
+      throw new ConflictException('Event name already in use!');
     }
 
     const slug = this.slugProvider.slugify(createEventDto.name);
@@ -108,6 +132,7 @@ export class EventsService {
           address_number: String(geocodeResponse.streetNumber),
           country_id: geocodeResponse.countryCode,
           address_district: geocodeResponse.state,
+          sales_starts_at: createEventDto.sales_starts_at,
           starts_at: new Date(createEventDto.starts_at),
           ends_at: new Date(createEventDto.ends_at),
         })

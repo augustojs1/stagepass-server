@@ -21,10 +21,13 @@ export class AddressService {
       !geocodeResponse.city ||
       !geocodeResponse.countryCode ||
       !geocodeResponse.streetName ||
-      !geocodeResponse.streetNumber ||
       !geocodeResponse.state
     ) {
       throw new BadRequestException('Invalid or non existent address!');
+    }
+
+    if (!geocodeResponse.streetNumber) {
+      geocodeResponse.streetNumber = forwardGeocoderDto.complement;
     }
 
     return geocodeResponse;

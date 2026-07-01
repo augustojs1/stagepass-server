@@ -76,6 +76,7 @@ create table events (
 	address_city VARCHAR(100) NOT NULL,
 	country_id CHAR(2) references countries (code),
 	location GEOGRAPHY(Point, 4326) NOT NULL,
+  sales_starts_at TIMESTAMPTZ NOT NULL,
 	starts_at TIMESTAMPTZ NOT NULL,
 	ends_at TIMESTAMPTZ NOT NULL,
 	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

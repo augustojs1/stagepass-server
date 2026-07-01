@@ -25,6 +25,7 @@ export const createEventDtoSchema = z
     address_street: z.string().min(1).max(30),
     address_number: z.string().min(1).max(30),
     address_city: z.string().min(1).max(30),
+    sales_starts_at: z.coerce.date(),
     starts_at: z.coerce.date(),
     ends_at: z.coerce.date(),
     event_tickets: z.array(eventTicketDto).min(1),
