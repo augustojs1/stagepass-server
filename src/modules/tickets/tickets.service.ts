@@ -8,7 +8,8 @@ import {
 } from '@nestjs/common';
 
 import { TicketsRepository } from './tickets.repository';
-import { DateProvider } from '../shared/providers';
+import { TicketsMapper } from './mappers/tickets.mapper';
+import { UserTicketsDto } from './dtos';
 
 @Injectable()
 export class TicketsService {
@@ -16,7 +17,7 @@ export class TicketsService {
 
   constructor(
     private readonly ticketsRepository: TicketsRepository,
-    private readonly dateProvider: DateProvider,
+    private readonly ticketsMapper: TicketsMapper,
   ) {}
 
   async validate(organizer_id: string, code: string) {
@@ -59,6 +60,30 @@ export class TicketsService {
 
       this.logger.error(
         `Failed to validate ticket code=${code}, organizer_id=${organizer_id}!`,
+        e?.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Unexpected error!');
+    }
+  }
+
+  async findOwnerTickets(owner_id: string): Promise<UserTicketsDto[]> {
+    try {
+      const ownerEventTickets =
+        await this.ticketsRepository.findTicketsWithEventDataByOwnerId(
+          owner_id,
+        );
+
+      return this.ticketsMapper.eventTicketsToUserTicketsDto(ownerEventTickets);
+    } catch (error) {
+      const e = error as Error;
+
+      this.logger.error(
+        `Error while trying to find owner tickets owner_id=${owner_id}!`,
         e?.stack,
       );
 

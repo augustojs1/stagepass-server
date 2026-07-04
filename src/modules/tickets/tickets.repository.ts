@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
-import { TicketEntity } from './models';
+import { EventTicket, TicketEntity } from './models';
 import { UpdateTicketParams } from './models/update-ticket-params.model';
 
 @Injectable()
@@ -73,5 +73,38 @@ export class TicketsRepository {
         ...data,
       })
       .where(eq(schema.tickets.id, id));
+  }
+
+  async findTicketsWithEventDataByOwnerId(
+    owner_id: string,
+  ): Promise<EventTicket[]> {
+    const result = await this.drizzle
+      .select({
+        event_id: schema.events.id,
+        event_name: schema.events.name,
+        event_description: schema.events.description,
+        event_address_street: schema.events.address_street,
+        event_address_number: schema.events.address_number,
+        event_address_district: schema.events.address_district,
+        event_starts_at: schema.events.starts_at,
+        event_ends_at: schema.events.ends_at,
+        ticket_id: schema.tickets.id,
+        ticket_owner_id: schema.tickets.owner_id,
+        ticket_file_url: schema.tickets.file_url,
+        ticket_code: schema.tickets.code,
+      })
+      .from(schema.tickets)
+      .innerJoin(
+        schema.event_tickets,
+        eq(schema.tickets.event_ticket_id, schema.event_tickets.id),
+      )
+      .innerJoin(
+        schema.events,
+        eq(schema.events.id, schema.event_tickets.event_id),
+      )
+      .where(eq(schema.tickets.owner_id, owner_id))
+      .orderBy(asc(schema.events.starts_at));
+
+    return result;
   }
 }
