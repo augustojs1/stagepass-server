@@ -14,6 +14,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { WebhooksModule } from './infra/webhooks/webhooks.module';
 import { PaymentOrdersModule } from './modules/payment-orders/payment-orders.module';
 import { MessagesModule } from './infra/messages/messages.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MessagesModule } from './infra/messages/messages.module';
     WebhooksModule,
     PaymentOrdersModule,
     MessagesModule,
+    TicketsModule,
   ],
   providers: [
     {

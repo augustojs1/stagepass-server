@@ -10,3 +10,4 @@ export * from '@/modules/orders/entities/order-item.entity';
 export * from '@/modules/events/entities/event-tickets-reservations.entity';
 export * from '@/modules/payment-orders/entities/payment-order.entity';
 export * from '@/infra/payment-gateway/entities/payment-gateway-webhook-events.entity';
+export * from '@/modules/tickets/entities/ticket.entity';

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { compareAsc, differenceInHours, format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class DateProvider {
@@ -32,5 +32,9 @@ export class DateProvider {
     const zonedDate = toZonedTime(date, timezone);
 
     return format(zonedDate, 'yyyy-MM-dd HH:mm:ss.SSS xxx');
+  }
+
+  dateToTimestampTz(date: Date, timezone: string): string {
+    return formatInTimeZone(date, timezone, 'yyyy-MM-dd HH:mm:ss.SSS xxx');
   }
 }
