@@ -25,6 +25,7 @@ import {
   BannerUpdateResponseDto,
   CreateEventResponseDto,
   EventsWithTicketsAndImagesDto,
+  FindEventsQueryDto,
   GalleryImagesPresignDto,
   UpdateEventImagesDto,
 } from './dto';
@@ -38,6 +39,8 @@ import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-
 import { AddressService } from '../address/address.service';
 import { isUUID } from '@/modules/shared/utils';
 import { EventWithTicketsAndImages } from './models/event-with-tickets-and-images.model';
+import { EventsPaginatedResponseDto } from './dto/response/events-paginated-response.dto';
+import { PaginationMapper } from '../shared/pagination/mappers/pagination.mapper';
 
 @Injectable()
 export class EventsService {
@@ -54,6 +57,7 @@ export class EventsService {
     private readonly addressService: AddressService,
     private readonly r2StorageService: R2StorageService,
     private readonly eventsStoragePathProvider: EventsStoragePathProvider,
+    private readonly paginationMapper: PaginationMapper,
   ) {}
 
   async create(
@@ -152,6 +156,44 @@ export class EventsService {
     });
 
     return createdEvent;
+  }
+
+  async findAllPaginated(
+    query: FindEventsQueryDto,
+  ): Promise<EventsPaginatedResponseDto> {
+    try {
+      const result = await this.eventsRepository.findAll({
+        page: query.page,
+        per_page: query.per_page,
+        search: query.search,
+        category_ids: query.category_ids,
+        is_free: query.is_free,
+        latitude: query.latitude,
+        longitude: query.longitude,
+        radius_km: query.radius_km,
+      });
+
+      return this.paginationMapper.paginate(result.items, result.total, {
+        page: query.page,
+        per_page: query.per_page,
+      });
+    } catch (error) {
+      const exception = error as Error;
+
+      this.logger.error(
+        `Failed to find events with filters=${JSON.stringify({
+          ...query,
+          search: query.search,
+        })}`,
+        exception.stack,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Failed to find events.');
+    }
   }
 
   async findOneElseThrow(id: string): Promise<EventsEntity> {

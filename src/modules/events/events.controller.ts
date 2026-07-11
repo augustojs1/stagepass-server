@@ -8,6 +8,7 @@ import {
   Patch,
   ParseUUIDPipe,
   Get,
+  Query,
 } from '@nestjs/common';
 
 import { EventsService } from './events.service';
@@ -24,6 +25,8 @@ import {
   bannerUploadDtoSchema,
   CreateEventResponseDto,
   EventsWithTicketsAndImagesDto,
+  FindEventsQueryDto,
+  findEventsQuerySchema,
   GalleryImagesPresignDto,
   galleryImagesPresignDtoSchema,
   updateEventImagesDto,
@@ -32,6 +35,7 @@ import {
 import { PreSignedResponse } from '@/infra/storage/models';
 import { GalleryImagesPresignUrlsResponse } from './dto/response/gallery-images-pre-sign-urls-response.dto';
 import { uploadPresignPayloadSchema } from '@/infra/storage/models/upload-pre-sign-payload';
+import { EventsPaginatedResponseDto } from './dto/response/events-paginated-response.dto';
 
 @Controller('events')
 export class EventsController {
@@ -45,6 +49,14 @@ export class EventsController {
     createEventDto: CreateEventDto,
   ): Promise<CreateEventResponseDto> {
     return await this.eventsService.create(req.user.sub, createEventDto);
+  }
+
+  @Get()
+  async getAllPaginated(
+    @Query(new ZodValidationPipe(findEventsQuerySchema))
+    query: FindEventsQueryDto,
+  ): Promise<EventsPaginatedResponseDto> {
+    return await this.eventsService.findAllPaginated(query);
   }
 
   @UseGuards(JwtAuthGuard)

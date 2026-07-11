@@ -15,6 +15,7 @@ import {
 } from '@/infra/storage';
 import { EventsStoragePathProvider } from './providers';
 import { AddressModule } from '../address/address.module';
+import { PaginationModule } from '../shared/pagination/pagination.module';
 
 @Module({
   controllers: [EventsController],
@@ -32,7 +33,7 @@ import { AddressModule } from '../address/address.module';
     R2StorageService,
     EventsStoragePathProvider,
   ],
-  imports: [CategoriesModule, AddressModule],
+  imports: [CategoriesModule, AddressModule, PaginationModule],
   exports: [EventsService, DateProvider],
 })
 export class EventsModule {}

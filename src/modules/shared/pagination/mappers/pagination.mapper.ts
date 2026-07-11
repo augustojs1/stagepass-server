@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { PaginatedResult } from './models/paginated-result';
-import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { PaginatedResult } from '../models/paginated-result';
+import { PaginationQueryDto } from '../dto/pagination-query.dto';
 
 @Injectable()
 export class PaginationMapper {
