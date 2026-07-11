@@ -7,3 +7,5 @@ export * from './request/gallery-images-pre-sign.dto';
 export * from './request/gallery-images-pre-sign.dto';
 export * from './request/update-event-images.dto';
 export * from './response/events-with-tickets-and.images.dto';
+export * from './request/find-events-query.dto';
+export * from './response/event-item-paginated.dto';

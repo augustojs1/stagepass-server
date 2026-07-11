@@ -6,3 +6,6 @@ export * from './create-event-image-data.model';
 export * from './create-event-data.model';
 export * from '../../address/models/forward-geocoder-data.model';
 export * from '../../address/dto/response/forward-geocoder-response.model';
+export * from './event-image-entity.model';
+export * from './find-events-filter.model';
+export * from './find-events-result.model';
