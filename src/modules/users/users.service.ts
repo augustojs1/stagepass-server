@@ -4,7 +4,7 @@ import { UsersRepository } from './users.repository';
 import { SignUpLocalDto } from '../auth/dtos';
 import { UserEntity } from './models';
 import { UserWithProfile } from './models/user-with-profile.model';
-import { R2StorageService } from '@/infra/storage';
+import { ICloudStorageService } from '@/infra/storage';
 import { UsersProfileEntity } from './models/users-profile-entity.model';
 import { AvatarUploadPreSignDto, UpdateAvatarSuccessDto } from './dtos';
 import { PreSignedResponse } from '@/infra/storage/models';
@@ -14,7 +14,7 @@ import { UserStoragePathProvider } from './providers';
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly r2StorageService: R2StorageService,
+    private readonly storageService: ICloudStorageService,
     private readonly userStoragePathProvider: UserStoragePathProvider,
   ) {}
 
@@ -70,10 +70,10 @@ export class UsersService {
     const user = await this.findWithProfileById(id);
 
     if (user.users_profile.avatar_url) {
-      this.r2StorageService.removeObject(user.users_profile.avatar_url);
+      this.storageService.removeObject(user.users_profile.avatar_url);
     }
 
-    return await this.r2StorageService.createPresignedUploadUrl(
+    return await this.storageService.createPresignedUploadUrl(
       `${path}/${avatarUploadPresignDto.filename}`,
       300,
       avatarUploadPresignDto.mimetype,
@@ -84,7 +84,7 @@ export class UsersService {
     id: string,
     avatarKey: string,
   ): Promise<UpdateAvatarSuccessDto> {
-    await this.r2StorageService.getObject(avatarKey);
+    await this.storageService.getObject(avatarKey);
 
     const avatarUrl = this.userStoragePathProvider.generateAvatarUrl(avatarKey);
 

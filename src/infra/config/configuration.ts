@@ -38,4 +38,10 @@ export const configuration = () => ({
     queue_payment_succes: process.env.RMQ_QUEUE_PAYMENT_SUCCESS,
     queue_ticket_generate: process.env.RMQ_QUEUE_TICKET_GENERATE,
   },
+  aws: {
+    region: process.env.AWS_REGION,
+    s3: {
+      bucket: process.env.AWS_S3_BUCKET,
+    },
+  },
 });

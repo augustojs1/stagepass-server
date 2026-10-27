@@ -4,12 +4,13 @@ import { MulterModule } from '@nestjs/platform-express';
 import * as multer from 'multer';
 
 import { DrizzleModule } from '@/infra/database/orm/drizzle/drizzle.module';
-import { R2StorageService } from '@/infra/storage';
+import { ICloudStorageService } from '@/infra/storage';
 import { UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
 import { UsersController } from './users.controller';
 import { UsersMapper } from './mappers/users.mapper';
 import { UserStoragePathProvider } from './providers';
+import { S3StorageService } from '@/infra/storage/s3/s3-storage.service';
 
 @Module({
   controllers: [UsersController],
@@ -24,7 +25,10 @@ import { UserStoragePathProvider } from './providers';
     UsersRepository,
     UsersMapper,
     JwtService,
-    R2StorageService,
+    {
+      provide: ICloudStorageService,
+      useClass: S3StorageService,
+    },
     UserStoragePathProvider,
   ],
   exports: [UsersService, UsersMapper],

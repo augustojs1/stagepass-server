@@ -8,14 +8,11 @@ import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesModule } from '../categories/categories.module';
 import { SlugProvider } from '../shared/providers';
 import { DateProvider } from '../shared/providers/date.provider';
-import {
-  DiskStorageService,
-  IStorageService,
-  R2StorageService,
-} from '@/infra/storage';
+import { ICloudStorageService } from '@/infra/storage';
 import { EventsStoragePathProvider } from './providers';
 import { AddressModule } from '../address/address.module';
 import { PaginationModule } from '../shared/pagination/pagination.module';
+import { S3StorageService } from '@/infra/storage/s3/s3-storage.service';
 
 @Module({
   controllers: [EventsController],
@@ -27,10 +24,9 @@ import { PaginationModule } from '../shared/pagination/pagination.module';
     SlugProvider,
     DateProvider,
     {
-      provide: IStorageService,
-      useClass: DiskStorageService,
+      provide: ICloudStorageService,
+      useClass: S3StorageService,
     },
-    R2StorageService,
     EventsStoragePathProvider,
   ],
   imports: [CategoriesModule, AddressModule, PaginationModule],

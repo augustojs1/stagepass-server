@@ -16,7 +16,7 @@ import { EventsRepository } from './events.repository';
 import { EventsMapper } from './mappers/events.mapper';
 import { CategoriesService } from '../categories/categories.service';
 import { SlugProvider, DateProvider } from '@/modules/shared/providers';
-import { R2StorageService } from '@/infra/storage';
+import { ICloudStorageService } from '@/infra/storage';
 import { EventsStoragePathProvider } from './providers';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
@@ -55,7 +55,7 @@ export class EventsService {
     private readonly slugProvider: SlugProvider,
     private readonly dateProvider: DateProvider,
     private readonly addressService: AddressService,
-    private readonly r2StorageService: R2StorageService,
+    private readonly storageService: ICloudStorageService,
     private readonly eventsStoragePathProvider: EventsStoragePathProvider,
     private readonly paginationMapper: PaginationMapper,
   ) {}
@@ -227,7 +227,7 @@ export class EventsService {
       bannerImagePreSignDto.filename,
     );
 
-    const response = await this.r2StorageService.createPresignedUploadUrl(
+    const response = await this.storageService.createPresignedUploadUrl(
       key,
       300,
       bannerImagePreSignDto.mimetype,
@@ -249,7 +249,7 @@ export class EventsService {
 
     this.checkIfUserIsEventOrganizerElseThrow(event.organizer_id, user_id);
 
-    await this.r2StorageService.getObject(bannerImageKey);
+    await this.storageService.getObject(bannerImageKey);
 
     const bannerUrl =
       this.eventsStoragePathProvider.generateUrl(bannerImageKey);
@@ -283,7 +283,7 @@ export class EventsService {
         image.filename,
       );
 
-      const response = await this.r2StorageService.createPresignedUploadUrl(
+      const response = await this.storageService.createPresignedUploadUrl(
         key,
         1000,
         image.mimetype,
@@ -316,7 +316,7 @@ export class EventsService {
 
     await Promise.all(
       updateEventImagesDto.event_images_key.map(async (key) => {
-        await this.r2StorageService.getObject(key);
+        await this.storageService.getObject(key);
         createEventImageData.push({
           event_id: event.id,
           object_key: key,

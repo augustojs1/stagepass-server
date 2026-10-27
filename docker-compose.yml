@@ -3,11 +3,11 @@ services:
     image: mdillon/postgis
     restart: always
     environment:
-      POSTGRES_DB: "stagepass_db"
-      POSTGRES_USER: "stagepass_server"
-      POSTGRES_PASSWORD: "60009172"
+      POSTGRES_DB: 'stagepass_db'
+      POSTGRES_USER: 'stagepass_server'
+      POSTGRES_PASSWORD: '60009172'
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - stagepass_db_data:/var/lib/postgresql_11/data
 
@@ -23,15 +23,6 @@ services:
   #     - stagepass_db
   #   volumes:
   #     - .:/usr/app
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbit-mq-broker
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
 
 networks:
   stagepass_network:
