@@ -6,7 +6,7 @@ export class EventsStoragePathProvider {
   private publicUrl: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.publicUrl = this.configService.get<string>('r2.public_url');
+    this.publicUrl = this.configService.get<string>('aws.s3.public_url');
   }
 
   generateKey(user_id: string, event_id: string, filename: string): string {
