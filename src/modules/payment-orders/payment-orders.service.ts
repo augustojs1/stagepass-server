@@ -5,7 +5,6 @@ import { eq } from 'drizzle-orm';
 import { PaymentOrdersRepository } from './payment-orders.repository';
 import { InsertPaymentOrdersParams } from './models/insert-payment-orders-params.model';
 import { PaymentOrderEntity } from './models/payment-order-entity.model';
-import { CheckoutSessionData } from '@/infra/payment-gateway/impl/stripe/models';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
 import { PaymentProviders } from './enum';
@@ -41,7 +40,7 @@ export class PaymentOrdersService {
   }
 
   async updateAndCreateNewPaymentOrderTransaction(
-    checkout_session_data: CheckoutSessionData,
+    checkout_session_data: any,
     payment_order: PaymentOrderEntity,
   ): Promise<void> {
     await this.drizzle.transaction(async (trx) => {

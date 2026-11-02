@@ -28,10 +28,8 @@ import { OrdersMapper } from './mappers';
 import { OrderItemEntity, OrdersEntity } from './models';
 import { DATABASE_TAG } from '@/infra/database/orm/drizzle/drizzle.module';
 import * as schema from '@/infra/database/orm/drizzle/schema';
-import { IPaymentGateway } from '@/infra/payment-gateway/interfaces/ipayment-gateway.interface';
 import { PaymentOrdersService } from '../payment-orders/payment-orders.service';
 import { PaymentProviders } from '../payment-orders/enum';
-import { CheckoutSessionData } from '@/infra/payment-gateway/impl/stripe/models';
 
 @Injectable()
 export class OrdersService {
@@ -46,7 +44,6 @@ export class OrdersService {
     private readonly dateProvider: DateProvider,
     private readonly ordersMapper: OrdersMapper,
     private readonly paymentOrdersService: PaymentOrdersService,
-    private readonly paymentGateway: IPaymentGateway,
   ) {}
 
   async create(
@@ -392,20 +389,18 @@ export class OrdersService {
     order: { id: string; total_price: number },
     provider: PaymentProviders,
   ) {
-    switch (provider) {
-      case PaymentProviders.STRIPE:
-        return this.paymentGateway.process({
-          order_id: order.id,
-          amount: order.total_price,
-        });
-      default:
-        throw new UnprocessableEntityException('Unsupported payment provider');
-    }
+    // switch (provider) {
+    //   case PaymentProviders.STRIPE:
+    //     return this.paymentGateway.process({
+    //       order_id: order.id,
+    //       amount: order.total_price,
+    //     });
+    //   default:
+    //     throw new UnprocessableEntityException('Unsupported payment provider');
+    // }
   }
 
-  private createPendingResponse(
-    checkout: CheckoutSessionData,
-  ): PayOrderCheckoutResponseDto {
+  private createPendingResponse(checkout: any): PayOrderCheckoutResponseDto {
     return {
       receipt_url: null,
       status: 'PENDING',
@@ -487,19 +482,19 @@ export class OrdersService {
           PaymentProviders[pay_order_dto.payment_provider],
         );
 
-        await this.paymentOrdersService.create({
-          order_id: order.id,
-          amount: order.total_price,
-          currency: 'USD',
-          provider: PaymentProviders.STRIPE,
-          provider_reference_id: checkoutData.provider_reference_id,
-          status: 'PENDING',
-          checkout_url: checkoutData.checkout_url,
-          checkout_url_expires_at: this.toCheckoutExpiresAtDate(
-            checkoutData.checkout_url_expires_at,
-            'America/Sao_Paulo',
-          ),
-        });
+        // await this.paymentOrdersService.create({
+        //   order_id: order.id,
+        //   amount: order.total_price,
+        //   currency: 'USD',
+        //   provider: PaymentProviders.STRIPE,
+        //   provider_reference_id: checkoutData.provider_reference_id,
+        //   status: 'PENDING',
+        //   checkout_url: checkoutData.checkout_url,
+        //   checkout_url_expires_at: this.toCheckoutExpiresAtDate(
+        //     checkoutData.checkout_url_expires_at,
+        //     'America/Sao_Paulo',
+        //   ),
+        // });
 
         return this.createPendingResponse(checkoutData);
       }
@@ -540,19 +535,19 @@ export class OrdersService {
           PaymentProviders[pay_order_dto.payment_provider],
         );
 
-        await this.paymentOrdersService.create({
-          order_id: order.id,
-          amount: order.total_price,
-          currency: 'USD',
-          provider: PaymentProviders.STRIPE,
-          provider_reference_id: checkoutData.provider_reference_id,
-          status: 'PENDING',
-          checkout_url: checkoutData.checkout_url,
-          checkout_url_expires_at: this.toCheckoutExpiresAtDate(
-            checkoutData.checkout_url_expires_at,
-            'America/Sao_Paulo',
-          ),
-        });
+        // await this.paymentOrdersService.create({
+        //   order_id: order.id,
+        //   amount: order.total_price,
+        //   currency: 'USD',
+        //   provider: PaymentProviders.STRIPE,
+        //   provider_reference_id: checkoutData.provider_reference_id,
+        //   status: 'PENDING',
+        //   checkout_url: checkoutData.checkout_url,
+        //   checkout_url_expires_at: this.toCheckoutExpiresAtDate(
+        //     checkoutData.checkout_url_expires_at,
+        //     'America/Sao_Paulo',
+        //   ),
+        // });
 
         return this.createPendingResponse(checkoutData);
       }

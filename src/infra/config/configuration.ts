@@ -19,25 +19,6 @@ export const configuration = () => ({
     refresh_expiresInMs: process.env.JWT_REFRESH_EXPIRE_IN_MS,
   },
   geocoder_api_key: process.env.GEOCODER_PROVIDER_API_KEY,
-  r2: {
-    access_key: process.env.R2_ACCESS_KEY_ID,
-    secret_access_key: process.env.R2_SECRET_ACCESS_KEY_ID,
-    endpoint: process.env.R2_ENDPOINT,
-    region: process.env.R2_REGION,
-    bucket: process.env.R2_BUCKET,
-    public_url: process.env.R2_PUBLIC_URL,
-  },
-  stripe: {
-    publishable_key: process.env.STRIPE_PUBLISHABLE_KEY,
-    secret_key: process.env.STRIPE_SECRET_KEY,
-    webhook_key: process.env.STRIPE_WEBHOOK_KEY,
-  },
-  rmq: {
-    url: process.env.RMQ_URL,
-    queue_payment_failed: process.env.RMQ_QUEUE_PAYMENT_FAILED,
-    queue_payment_succes: process.env.RMQ_QUEUE_PAYMENT_SUCCESS,
-    queue_ticket_generate: process.env.RMQ_QUEUE_TICKET_GENERATE,
-  },
   aws: {
     region: process.env.AWS_REGION,
     s3: {
