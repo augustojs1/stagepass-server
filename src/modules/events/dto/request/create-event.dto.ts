@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+const utcDateSchema = z.iso
+  .datetime({
+    offset: true,
+  })
+  .transform((value) => new Date(value));
+
 export const eventTicketDto = z
   .object({
     name: z.string().min(1).max(50),
@@ -25,9 +31,11 @@ export const createEventDtoSchema = z
     address_street: z.string().min(1).max(30),
     address_number: z.string().min(1).max(30),
     address_city: z.string().min(1).max(30),
-    sales_starts_at: z.coerce.date(),
-    starts_at: z.coerce.date(),
-    ends_at: z.coerce.date(),
+
+    sales_starts_at: utcDateSchema,
+    starts_at: utcDateSchema,
+    ends_at: utcDateSchema,
+
     event_tickets: z.array(eventTicketDto).min(1),
   })
   .strict();

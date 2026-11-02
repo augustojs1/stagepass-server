@@ -126,7 +126,7 @@ export class EventsService {
           ...createEventDto,
           organizer_id: user_id,
           banner_url: null,
-          slug: slug,
+          slug,
           location: {
             x: geocodeResponse.longitude,
             y: geocodeResponse.latitude,
@@ -136,7 +136,7 @@ export class EventsService {
           address_number: String(geocodeResponse.streetNumber),
           country_id: geocodeResponse.countryCode,
           address_district: geocodeResponse.state,
-          sales_starts_at: createEventDto.sales_starts_at,
+          sales_starts_at: new Date(createEventDto.sales_starts_at),
           starts_at: new Date(createEventDto.starts_at),
           ends_at: new Date(createEventDto.ends_at),
         })
