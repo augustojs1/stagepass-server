@@ -33,6 +33,7 @@ export const events = pgTable(
     slug: text().notNull(),
     banner_url: text(),
     is_free: boolean().notNull(),
+    timezone: varchar({ length: 100 }).notNull(),
     address_street: varchar({ length: 100 }).notNull(),
     address_number: varchar({ length: 20 }).notNull(),
     address_district: varchar({ length: 100 }).notNull(),

@@ -3,6 +3,7 @@ export class CreateEventData {
   event_category_id: string;
   name: string;
   description: string;
+  timezone: string;
   slug: string;
   banner_url: string;
   is_free: boolean;

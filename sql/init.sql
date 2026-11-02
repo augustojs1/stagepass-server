@@ -65,6 +65,7 @@ create table events (
 	id UUID primary key default gen_random_uuid() NOT NULL,
 	organizer_id UUID references users (id) not NULL,
 	event_category_id UUID references event_categories (id) NOT NULL,
+  timezone VARCHAR(100) NOT NULL,
 	is_free BOOLEAN NOT NULL,
 	name VARCHAR(100) NOT NULL,
 	description text NOT NULL,
